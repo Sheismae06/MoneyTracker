@@ -1,66 +1,32 @@
-// ✅ script.js (Updated with calendar-based tracking)
+document.addEventListener("DOMContentLoaded", function () { const incomeInput = document.getElementById("income"); const expenseInput = document.getElementById("expense"); const descriptionInput = document.getElementById("description"); const addButton = document.getElementById("addButton"); const chartCanvas = document.getElementById("moneyChart"); const saveButton = document.getElementById("saveButton"); const datePicker = document.getElementById("datePicker");
 
-// DOM Elements
-const amountInput = document.getElementById("amount");
-const categoryInput = document.getElementById("category");
-const descriptionInput = document.getElementById("description");
-const saveBtn = document.getElementById("saveBtn");
-const incomeList = document.getElementById("incomeList");
-const expenseList = document.getElementById("expenseList");
-const balanceEl = document.getElementById("balance");
-const datePicker = document.getElementById("datePicker");
+let moneyData = JSON.parse(localStorage.getItem("moneyData")) || {};
 
-// Initialize date picker to today
-datePicker.valueAsDate = new Date();
+const chart = new Chart(chartCanvas, { type: "bar", data: { labels: [], datasets: [ { label: "Income", backgroundColor: "#8BC34A", data: [], }, { label: "Expense", backgroundColor: "#F44336", data: [], }, ], }, options: { responsive: true, scales: { y: { beginAtZero: true, }, }, }, });
 
-// Retrieve and display data when date changes
-datePicker.addEventListener("change", loadDataForSelectedDate);
+function updateChartForDate(date) { const entries = moneyData[date] || []; chart.data.labels = entries.map((entry) => entry.description); chart.data.datasets[0].data = entries.map((entry) => entry.income); chart.data.datasets[1].data = entries.map((entry) => entry.expense); chart.update(); }
 
-// Save entry
-saveBtn.addEventListener("click", () => {
-  const amount = parseFloat(amountInput.value);
-  const category = categoryInput.value;
-  const description = descriptionInput.value;
-  const dateKey = datePicker.value;
+function saveDataToLocalStorage() { localStorage.setItem("moneyData", JSON.stringify(moneyData)); }
 
-  if (!amount || !category) return alert("Please fill out all fields");
+addButton.addEventListener("click", function () { const income = parseFloat(incomeInput.value) || 0; const expense = parseFloat(expenseInput.value) || 0; const description = descriptionInput.value.trim() || "No Description"; const selectedDate = datePicker.value || new Date().toISOString().split("T")[0];
 
-  const entry = { amount, category, description, date: dateKey };
-
-  const entries = JSON.parse(localStorage.getItem(dateKey)) || [];
-  entries.push(entry);
-  localStorage.setItem(dateKey, JSON.stringify(entries));
-
-  amountInput.value = "";
-  categoryInput.value = "";
-  descriptionInput.value = "";
-
-  loadDataForSelectedDate();
-});
-
-// Load data for selected date
-function loadDataForSelectedDate() {
-  const dateKey = datePicker.value;
-  const entries = JSON.parse(localStorage.getItem(dateKey)) || [];
-
-  incomeList.innerHTML = "";
-  expenseList.innerHTML = "";
-
-  let balance = 0;
-
-  entries.forEach(({ amount, category, description }) => {
-    const li = document.createElement("li");
-    li.textContent = `${category}: PHP ${amount.toFixed(2)}${description ? ` (${description})` : ""}`;
-    if (amount >= 0) {
-      incomeList.appendChild(li);
-    } else {
-      expenseList.appendChild(li);
-    }
-    balance += amount;
-  });
-
-  balanceEl.textContent = `PHP ${balance.toFixed(2)}`;
+if (!moneyData[selectedDate]) {
+  moneyData[selectedDate] = [];
 }
 
-// Initial load
-loadDataForSelectedDate();
+moneyData[selectedDate].push({ income, expense, description });
+saveDataToLocalStorage();
+updateChartForDate(selectedDate);
+
+incomeInput.value = "";
+expenseInput.value = "";
+descriptionInput.value = "";
+
+});
+
+saveButton.addEventListener("click", function () { alert("Data saved locally! You can return to any date and your entries will remain."); });
+
+datePicker.addEventListener("change", function () { updateChartForDate(datePicker.value); });
+
+// Initialize with today's date datePicker.value = new Date().toISOString().split("T")[0]; updateChartForDate(datePicker.value); });
+
