@@ -1,165 +1,124 @@
-const expenseForm = document.getElementById("expense-form");
-const expenseFields = document.getElementById("expense-fields");
-const totalDisplay = document.getElementById("total");
-const addMoreBtn = document.getElementById("add-more");
-const dateInput = document.getElementById("date");
-const trackList = document.getElementById("track-list");
-const yearFilter = document.getElementById("yearFilter");
-const monthFilter = document.getElementById("monthFilter");
-const dayFilter = document.getElementById("dayFilter");
-const filterBtn = document.getElementById("filterBtn");
+document.addEventListener('DOMContentLoaded', () => {
+  const descriptionInput = document.getElementById('description');
+  const amountInput = document.getElementById('amount');
+  const addMoreBtn = document.getElementById('addMore');
+  const saveBtn = document.getElementById('saveBtn');
+  const trackList = document.getElementById('trackList');
+  const totalDisplay = document.getElementById('total');
+  const savedExpenses = document.getElementById('savedExpenses');
+  const startDateInput = document.getElementById('startDate');
+  const endDateInput = document.getElementById('endDate');
+  const filterBtn = document.getElementById('filterBtn');
 
-let tracks = JSON.parse(localStorage.getItem("expenseTracks")) || [];
+  let trackItems = [];
 
-// Populate dropdowns
-function populateDropdowns() {
-  // Year 2025 - 3000
-  for (let y = 2025; y <= 3000; y++) {
-    yearFilter.innerHTML += `<option value="${y}">${y}</option>`;
-  }
-
-  // Month January - December
-  const months = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
-  ];
-  months.forEach((month, index) => {
-    monthFilter.innerHTML += `<option value="${index + 1}">${month}</option>`;
+  // Add item
+  addMoreBtn.addEventListener('click', () => {
+    const description = descriptionInput.value.trim();
+    const amount = parseFloat(amountInput.value.trim());
+    if (description && !isNaN(amount)) {
+      trackItems.push({ description, amount, date: new Date().toISOString().split('T')[0] });
+      renderTrackList(trackItems);
+      updateTotal(trackItems);
+      descriptionInput.value = '';
+      amountInput.value = '';
+      saveBtn.disabled = false;
+    }
   });
 
-  // Days 1 - 31
-  for (let d = 1; d <= 31; d++) {
-    dayFilter.innerHTML += `<option value="${d}">${d}</option>`;
-  }
-}
-populateDropdowns();
-
-// Real-time total computation
-function updateTotal() {
-  const amounts = [...document.querySelectorAll(".amount")].map(input => parseFloat(input.value) || 0);
-  const total = amounts.reduce((acc, val) => acc + val, 0);
-  totalDisplay.textContent = total.toFixed(2);
-}
-
-// Add more expense row
-addMoreBtn.addEventListener("click", () => {
-  const row = document.createElement("div");
-  row.className = "expense-row";
-  row.innerHTML = `
-    <input type="text" class="description" placeholder="Description" required />
-    <input type="number" class="amount" placeholder="Amount" required />
-  `;
-  expenseFields.appendChild(row);
-
-  row.querySelectorAll(".amount").forEach(input =>
-    input.addEventListener("input", updateTotal)
-  );
-});
-
-// Save button logic
-expenseForm.addEventListener("submit", (e) => {
-  e.preventDefault();
-  const selectedDate = dateInput.value;
-  if (!selectedDate) return alert("Please select a date.");
-
-  const details = [...document.querySelectorAll(".expense-row")].map(row => {
-    return {
-      description: row.querySelector(".description").value.trim(),
-      amount: parseFloat(row.querySelector(".amount").value || 0)
-    };
+  // Save to localStorage
+  saveBtn.addEventListener('click', () => {
+    const existing = JSON.parse(localStorage.getItem('expenses')) || [];
+    localStorage.setItem('expenses', JSON.stringify([...existing, ...trackItems]));
+    trackItems = [];
+    renderTrackList([]);
+    updateTotal([]);
+    alert('Saved successfully!');
+    saveBtn.disabled = true;
   });
 
-  const total = details.reduce((sum, item) => sum + item.amount, 0);
-  const newTrack = { date: selectedDate, details, total };
-
-  tracks.push(newTrack);
-  localStorage.setItem("expenseTracks", JSON.stringify(tracks));
-
-  alert("Saved successfully!");
-  expenseForm.reset();
-  expenseFields.innerHTML = `
-    <div class="expense-row">
-      <input type="text" class="description" placeholder="Description" required />
-      <input type="number" class="amount" placeholder="Amount" required />
-    </div>`;
-  updateTotal();
-});
-
-// Filter button
-filterBtn.addEventListener("click", () => {
-  const y = yearFilter.value;
-  const m = monthFilter.value.padStart(2, "0");
-  const d = dayFilter.value.padStart(2, "0");
-  const filterDate = `${y}-${m}-${d}`;
-
-  const filtered = tracks.filter(track => track.date === filterDate);
-  displayTracks(filtered);
-});
-
-// Display filtered tracks
-function displayTracks(data) {
-  trackList.innerHTML = "";
-  if (data.length === 0) {
-    trackList.innerHTML = "<p>No records found for selected date.</p>";
-    return;
+  // Render list
+  function renderTrackList(items) {
+    trackList.innerHTML = '';
+    items.forEach((item, index) => {
+      const li = document.createElement('li');
+      li.innerHTML = `
+        ${item.date} - ${item.description} - PHP ${item.amount.toFixed(2)}
+        <button class="edit" data-index="${index}">✏️</button>
+        <button class="delete" data-index="${index}">🗑️</button>
+      `;
+      trackList.appendChild(li);
+    });
   }
 
-  data.forEach((track, index) => {
-    const div = document.createElement("div");
-    div.className = "track-card";
-    div.innerHTML = `
-      <h3>📅 ${track.date}</h3>
-      <ul>
-        ${track.details.map((item, i) => `
-          <li>
-            📝 <input type="text" value="${item.description}" data-track="${track.date}" data-index="${i}" class="editable desc-edit"/>
-            💸 <input type="number" value="${item.amount}" data-track="${track.date}" data-index="${i}" class="editable amt-edit"/>
-          </li>`).join("")}
-      </ul>
-      <p>🧮 Total: PHP ${track.total.toFixed(2)}</p>
-      <button class="delete-btn" data-date="${track.date}">🗑️ Delete</button>
-    `;
-    trackList.appendChild(div);
+  // Update total
+  function updateTotal(items) {
+    const total = items.reduce((sum, item) => sum + item.amount, 0);
+    totalDisplay.textContent = `Total: PHP ${total.toFixed(2)}`;
+  }
+
+  // Filter expenses by date range
+  filterBtn.addEventListener('click', () => {
+    const startDate = new Date(startDateInput.value);
+    const endDate = new Date(endDateInput.value);
+    if (!startDate || !endDate || isNaN(startDate) || isNaN(endDate)) {
+      alert('Please select both start and end dates.');
+      return;
+    }
+
+    const saved = JSON.parse(localStorage.getItem('expenses')) || [];
+    const filtered = saved.filter(item => {
+      const itemDate = new Date(item.date);
+      return itemDate >= startDate && itemDate <= endDate;
+    });
+
+    renderTrackList(filtered);
+    updateTotal(filtered);
+    currentFiltered = filtered;
   });
 
-  // Enable edit fields
-  document.querySelectorAll(".editable").forEach(input => {
-    input.addEventListener("change", (e) => {
-      const { track, index } = e.target.dataset;
-      const foundTrack = tracks.find(t => t.date === track);
-      if (foundTrack) {
-        const isDesc = e.target.classList.contains("desc-edit");
-        if (isDesc) {
-          foundTrack.details[index].description = e.target.value;
-        } else {
-          foundTrack.details[index].amount = parseFloat(e.target.value) || 0;
+  // Edit and Delete logic
+  let currentFiltered = [];
+  trackList.addEventListener('click', (e) => {
+    const index = e.target.dataset.index;
+    if (e.target.classList.contains('delete')) {
+      if (confirm('Are you sure you want to delete this item?')) {
+        const all = JSON.parse(localStorage.getItem('expenses')) || [];
+        const filteredItem = currentFiltered[index];
+        const matchIndex = all.findIndex(
+          x => x.description === filteredItem.description &&
+               x.amount === filteredItem.amount &&
+               x.date === filteredItem.date
+        );
+        if (matchIndex !== -1) {
+          all.splice(matchIndex, 1);
+          localStorage.setItem('expenses', JSON.stringify(all));
         }
-        foundTrack.total = foundTrack.details.reduce((acc, item) => acc + item.amount, 0);
-        localStorage.setItem("expenseTracks", JSON.stringify(tracks));
-        displayTracks([foundTrack]); // Refresh
+        currentFiltered.splice(index, 1);
+        renderTrackList(currentFiltered);
+        updateTotal(currentFiltered);
       }
-    });
-  });
+    }
 
-  // Delete functionality
-  document.querySelectorAll(".delete-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      if (confirm("Are you sure you want to delete this entry?")) {
-        const dateToDelete = btn.dataset.date;
-        tracks = tracks.filter(t => t.date !== dateToDelete);
-        localStorage.setItem("expenseTracks", JSON.stringify(tracks));
-        trackList.innerHTML = "";
+    if (e.target.classList.contains('edit')) {
+      const item = currentFiltered[index];
+      const newDesc = prompt('Edit description:', item.description);
+      const newAmt = parseFloat(prompt('Edit amount:', item.amount));
+      if (newDesc && !isNaN(newAmt)) {
+        const all = JSON.parse(localStorage.getItem('expenses')) || [];
+        const matchIndex = all.findIndex(
+          x => x.description === item.description &&
+               x.amount === item.amount &&
+               x.date === item.date
+        );
+        if (matchIndex !== -1) {
+          all[matchIndex] = { ...item, description: newDesc, amount: newAmt };
+          localStorage.setItem('expenses', JSON.stringify(all));
+        }
+        currentFiltered[index] = { ...item, description: newDesc, amount: newAmt };
+        renderTrackList(currentFiltered);
+        updateTotal(currentFiltered);
       }
-    });
+    }
   });
-}
-
-// Initial total computation
-updateTotal();
-
-// Watch for manual edits in amount fields
-document.addEventListener("input", (e) => {
-  if (e.target.classList.contains("amount")) {
-    updateTotal();
-  }
 });
