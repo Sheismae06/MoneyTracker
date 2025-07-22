@@ -1,117 +1,118 @@
+/* Elegant Reset */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Segoe UI', sans-serif;
+  font-family: 'Poppins', sans-serif;
 }
 
 body {
-  background-color: #111;
-  color: #fff;
-  padding-top: 60px;
+  background-color: #1a1a1a;
+  color: #f0f0f0;
   min-height: 100vh;
+  padding-bottom: 100px;
 }
 
 .navbar {
-  background-color: #222;
+  background-color: #121212;
   color: gold;
-  padding: 16px 24px;
-  font-size: 20px;
+  padding: 15px 20px;
+  font-size: 1.3rem;
   font-weight: bold;
-  position: fixed;
-  top: 0;
-  width: 100%;
-  z-index: 10;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  text-align: center;
+  box-shadow: 0 2px 5px rgba(255, 215, 0, 0.1);
 }
 
 .container {
-  max-width: 700px;
-  margin: auto;
+  max-width: 600px;
+  margin: 30px auto;
   padding: 20px;
+  background-color: #222;
+  border-radius: 15px;
+  box-shadow: 0 5px 15px rgba(255, 215, 0, 0.05);
 }
 
 .date-picker {
   margin-bottom: 20px;
 }
 
-.date-picker label {
-  font-size: 16px;
-  margin-right: 10px;
+label {
+  font-size: 1rem;
+  color: #ddd;
+  margin-bottom: 5px;
+  display: block;
 }
 
-input[type="date"] {
-  padding: 6px 10px;
-  font-size: 16px;
-  border-radius: 6px;
-  border: none;
+input[type="date"],
+.description,
+.amount {
+  width: 100%;
+  padding: 10px;
+  margin: 8px 0;
+  border: 1px solid #444;
+  border-radius: 8px;
+  background-color: #2b2b2b;
+  color: #fff;
+  transition: 0.3s;
+}
+
+input:focus {
   outline: none;
-}
-
-#expense-form {
-  background-color: #1a1a1a;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 0 8px rgba(255, 215, 0, 0.2);
-  margin-bottom: 30px;
+  border-color: gold;
+  box-shadow: 0 0 5px gold;
 }
 
 .expense-row {
   display: flex;
   gap: 10px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
 }
 
-.description,
-.amount {
+.expense-row input {
   flex: 1;
-  padding: 10px;
-  font-size: 15px;
-  border: none;
-  border-radius: 6px;
-  background-color: #333;
-  color: #fff;
+  min-width: 100px;
 }
 
-.amount::-webkit-inner-spin-button {
-  display: none;
+button {
+  padding: 10px 20px;
+  background-color: gold;
+  color: #1a1a1a;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  font-weight: 600;
+  margin-top: 10px;
+}
+
+button:hover {
+  background-color: #ffd700b0;
 }
 
 #add-more {
   background-color: transparent;
-  border: 1px solid gold;
   color: gold;
-  padding: 8px 14px;
-  border-radius: 8px;
-  cursor: pointer;
-  margin-top: 10px;
-  transition: 0.3s ease;
+  border: 1px solid gold;
+  margin-top: 15px;
 }
 
 #add-more:hover {
   background-color: gold;
-  color: #000;
+  color: #1a1a1a;
 }
 
 .total-display {
-  margin: 18px 0;
-  font-size: 18px;
-  color: #ffd700;
+  margin-top: 15px;
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: gold;
+  text-align: right;
 }
 
 .save-btn {
-  background-color: gold;
-  color: #000;
-  font-weight: bold;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: 0.3s ease;
-}
-
-.save-btn:hover {
-  background-color: #ffcc00;
+  margin-top: 15px;
+  width: 100%;
 }
 
 #saved-tracks {
@@ -119,41 +120,48 @@ input[type="date"] {
 }
 
 #saved-tracks h2 {
-  font-size: 20px;
-  margin-bottom: 15px;
+  font-size: 1.3rem;
   color: gold;
+  margin-bottom: 15px;
 }
 
-.track-entry {
-  background-color: #1e1e1e;
-  padding: 15px;
+.track-item {
+  background-color: #2e2e2e;
+  border: 1px solid #333;
   border-radius: 10px;
-  margin-bottom: 16px;
-  box-shadow: 0 0 4px rgba(255, 255, 255, 0.1);
+  padding: 12px 15px;
+  margin-bottom: 10px;
+  color: #ddd;
+  transition: 0.3s ease;
 }
 
-.track-entry p {
-  margin: 6px 0;
+.track-item:hover {
+  border-color: gold;
+  background-color: #3b3b3b;
 }
 
-.track-entry .track-date {
-  color: #ccc;
-  font-size: 14px;
+.track-date {
+  font-weight: bold;
+  color: gold;
+  margin-bottom: 6px;
 }
 
-.track-entry button {
-  margin-top: 10px;
-  margin-right: 10px;
-  background-color: transparent;
-  border: 1px solid #888;
-  color: #fff;
-  padding: 6px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: 0.2s;
+.track-expense {
+  padding-left: 10px;
+  margin-top: 4px;
+  font-size: 0.95rem;
 }
 
-.track-entry button:hover {
-  background-color: crimson;
-  border-color: crimson;
+@media (max-width: 600px) {
+  .expense-row {
+    flex-direction: column;
+  }
+
+  button {
+    width: 100%;
+  }
+
+  .container {
+    margin: 15px;
+  }
 }
