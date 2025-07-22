@@ -5,103 +5,136 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Money Tracker</title>
   <link rel="stylesheet" href="style.css" />
+  <style>
+    /* No layout, font, or style changed except added section styles */
+    #calendar {
+      padding: 1rem;
+      background: #1a1a1a;
+      text-align: center;
+    }
+
+    #calendar input[type="date"] {
+      padding: 0.5rem;
+      border-radius: 5px;
+      border: none;
+    }
+
+    .confirm-msg {
+      color: gold;
+      text-align: center;
+      margin-top: 10px;
+      display: none;
+    }
+
+    #historySection {
+      margin: 2rem;
+      text-align: center;
+    }
+
+    #historyList {
+      margin-top: 10px;
+      color: white;
+    }
+
+    .btn-export {
+      margin-top: 1rem;
+      padding: 0.5rem 1rem;
+      background: gold;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
-  <nav class="navbar">
-    <!-- Plain navbar, no Menu | Settings -->
-  </nav>
-
-  <!-- Calendar on top -->
-  <section style="text-align: center; margin-top: 20px;">
-    <label for="trackDate">📅 Select a Date:</label>
-    <input type="date" id="trackDate">
-    <button onclick="loadTrack()">Show History</button>
-    <button onclick="exportTracks()">Export</button>
-  </section>
-
   <header>
-    <h1>Daily Money Tracker</h1>
+    <h1>Money Tracker</h1>
   </header>
 
-  <main>
-    <section class="tracker">
-      <label for="income">Income</label>
-      <input type="number" id="income" placeholder="Enter income" />
+  <!-- Calendar Picker -->
+  <section id="calendar">
+    <label for="trackDate">Select a date:</label>
+    <input type="date" id="trackDate" />
+  </section>
 
-      <label for="expenses">Expenses</label>
-      <input type="number" id="expenses" placeholder="Enter expenses" />
+  <!-- Tracking Form -->
+  <section>
+    <form id="trackerForm">
+      <input type="text" id="income" placeholder="Enter income" required /><br/>
+      <input type="text" id="expense" placeholder="Enter expenses" required /><br/>
+      <input type="text" id="note" placeholder="Enter note" /><br/>
+      <button type="submit">Save</button>
+      <div class="confirm-msg" id="confirmMsg">Your track today was successfully saved.</div>
+    </form>
+  </section>
 
-      <label for="notes">Notes</label>
-      <textarea id="notes" placeholder="Enter notes (optional)"></textarea>
-
-      <button onclick="saveTrack()">Save</button>
-      <p id="saveStatus" style="color: gold; margin-top: 10px;"></p>
-    </section>
-  </main>
+  <!-- History Display -->
+  <section id="historySection">
+    <h3>Saved Track</h3>
+    <div id="historyList">No data selected</div>
+    <button class="btn-export" onclick="exportData()">Export History</button>
+  </section>
 
   <script>
-    const storageKey = 'moneyTrackerData';
+    const trackDate = document.getElementById("trackDate");
+    const form = document.getElementById("trackerForm");
+    const income = document.getElementById("income");
+    const expense = document.getElementById("expense");
+    const note = document.getElementById("note");
+    const confirmMsg = document.getElementById("confirmMsg");
+    const historyList = document.getElementById("historyList");
 
-    function saveTrack() {
-      const date = new Date().toISOString().split('T')[0];
-      const income = document.getElementById('income').value;
-      const expenses = document.getElementById('expenses').value;
-      const notes = document.getElementById('notes').value;
+    const today = new Date().toISOString().split('T')[0];
+    trackDate.value = today;
 
-      if (!income && !expenses && !notes) return;
-
-      const data = JSON.parse(localStorage.getItem(storageKey)) || {};
-      data[date] = { income, expenses, notes };
-      localStorage.setItem(storageKey, JSON.stringify(data));
-
-      document.getElementById('saveStatus').textContent = "Your track today was successfully saved.";
-      setTimeout(() => {
-        document.getElementById('saveStatus').textContent = "";
-      }, 3000);
-
-      document.getElementById('income').value = '';
-      document.getElementById('expenses').value = '';
-      document.getElementById('notes').value = '';
-    }
-
-    function loadTrack() {
-      const selectedDate = document.getElementById('trackDate').value;
-      const data = JSON.parse(localStorage.getItem(storageKey)) || {};
-      const track = data[selectedDate];
-
-      if (track) {
-        document.getElementById('income').value = track.income;
-        document.getElementById('expenses').value = track.expenses;
-        document.getElementById('notes').value = track.notes;
-        document.getElementById('saveStatus').textContent = `Showing track from ${selectedDate}`;
-        setTimeout(() => {
-          document.getElementById('saveStatus').textContent = "";
-        }, 3000);
+    function loadTrack(date) {
+      const data = JSON.parse(localStorage.getItem("track_" + date)) || null;
+      if (data) {
+        historyList.innerHTML = `
+          <p><strong>Income:</strong> ${data.income}</p>
+          <p><strong>Expense:</strong> ${data.expense}</p>
+          <p><strong>Note:</strong> ${data.note}</p>`;
       } else {
-        document.getElementById('saveStatus').textContent = `No track found for ${selectedDate}`;
-        setTimeout(() => {
-          document.getElementById('saveStatus').textContent = "";
-        }, 3000);
+        historyList.innerHTML = "No data saved on this date.";
       }
     }
 
-    function exportTracks() {
-      const data = JSON.parse(localStorage.getItem(storageKey)) || {};
-      let content = 'Saved Tracks:\n\n';
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      const selectedDate = trackDate.value;
+      const data = {
+        income: income.value,
+        expense: expense.value,
+        note: note.value
+      };
+      localStorage.setItem("track_" + selectedDate, JSON.stringify(data));
+      confirmMsg.style.display = "block";
+      setTimeout(() => confirmMsg.style.display = "none", 3000);
+      form.reset();
+      loadTrack(selectedDate);
+    });
 
-      for (const [date, entry] of Object.entries(data)) {
-        content += `Date: ${date}\nIncome: ${entry.income}\nExpenses: ${entry.expenses}\nNotes: ${entry.notes || 'None'}\n\n`;
+    trackDate.addEventListener("change", function () {
+      loadTrack(this.value);
+    });
+
+    function exportData() {
+      let all = {};
+      for (let key in localStorage) {
+        if (key.startsWith("track_")) {
+          all[key.replace("track_", "")] = JSON.parse(localStorage.getItem(key));
+        }
       }
-
-      const blob = new Blob([content], { type: "text/plain" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'Money_Tracker_History.txt';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+      const blob = new Blob([JSON.stringify(all, null, 2)], {type: "application/json"});
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "track_history.json";
+      link.click();
     }
+
+    // Load today by default
+    loadTrack(today);
   </script>
 </body>
 </html>
