@@ -4,228 +4,148 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Money Tracker</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-      margin: 0;
-      background-color: #f9f9f9;
-      color: #333;
-    }
-    nav {
-      background-color: #222;
-      color: white;
-      padding: 12px 20px;
-      font-weight: 500;
-    }
-    .container {
-      padding: 20px;
-      max-width: 800px;
-      margin: auto;
-    }
-    h1.title {
-      text-align: center;
-      font-size: 2rem;
-      color: #a98600;
-      margin-top: 20px;
-    }
-    label {
-      margin-top: 15px;
-      display: block;
-    }
-    input, select {
-      padding: 8px;
-      width: 100%;
-      margin-top: 5px;
-      border-radius: 4px;
-      border: 1px solid #ccc;
-    }
-    .row {
-      display: flex;
-      gap: 10px;
-      margin-top: 10px;
-    }
-    .row input {
-      flex: 1;
-    }
-    button {
-      background-color: #a98600;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      padding: 10px;
-      margin-top: 10px;
-      cursor: pointer;
-    }
-    .summary {
-      margin-top: 20px;
-      background: white;
-      padding: 15px;
-      border-radius: 8px;
-      box-shadow: 0 0 8px rgba(0,0,0,0.05);
-    }
-    canvas {
-      margin-top: 20px;
-    }
-    .footer {
-      text-align: center;
-      font-size: 0.8rem;
-      color: #777;
-      margin-top: 30px;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <nav class="navbar">
+    <h1>Money Tracker</h1>
+  </nav>
 
-  <nav>Menu | Settings</nav>
+  <section class="calendar">
+    <label>
+      Year:
+      <input type="number" id="year" value="2025" />
+    </label>
+    <label>
+      Month:
+      <input type="number" id="month" value="7" />
+    </label>
+    <label>
+      Day:
+      <input type="number" id="day" value="22" />
+    </label>
+    <button onclick="loadData()">Load</button>
+  </section>
 
-  <div class="container">
-    <h1 class="title">Money Tracker</h1>
+  <main>
+    <section class="tracker">
+      <input type="text" id="income" placeholder="Enter Income" />
+      <input type="text" id="expenses" placeholder="Enter Expenses" />
+      <textarea id="notes" placeholder="Notes..."></textarea>
+      <button onclick="saveData()">Save</button>
+      <button onclick="deleteData()">Delete</button>
+      <button onclick="showHistory()">Show History</button>
+      <button onclick="exportData()">Export Data</button>
+    </section>
 
-    <label>Cutoff 1</label>
-    <input type="number" id="cutoff1" oninput="calculateTotal()" />
+    <section class="chart">
+      <canvas id="moneyChart"></canvas>
+    </section>
 
-    <label>Cutoff 2</label>
-    <input type="number" id="cutoff2" oninput="calculateTotal()" />
+    <section class="history" id="history" style="display:none;">
+      <h3>Saved Dates:</h3>
+      <ul id="historyList"></ul>
+    </section>
+  </main>
 
-    <label>Total Salary</label>
-    <input type="number" id="totalSalary" readonly />
-
-    <label>Select Date</label>
-    <div class="row">
-      <select id="year"></select>
-      <select id="month"></select>
-      <select id="day"></select>
-    </div>
-
-    <h3 style="margin-top: 20px;">Daily Expenses</h3>
-    <div id="expenses"></div>
-    <button onclick="addExpense()">Add More</button>
-
-    <div class="summary">
-      <p>Total Expense: <strong id="totalExpense">0</strong></p>
-      <p>Balance: <strong id="balance">0</strong></p>
-    </div>
-
-    <canvas id="pieChart" height="200"></canvas>
-
-    <button onclick="saveDay()">Save</button>
-    <button onclick="loadDay()">Edit</button>
-    <button onclick="deleteDay()">Delete</button>
-
-    <div class="footer">Owned by Mae</div>
-  </div>
-
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-    // Populate year, month, day
-    for(let y=2025; y<=3000; y++) {
-      year.innerHTML += `<option>${y}</option>`;
-    }
-    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-    months.forEach((m,i) => month.innerHTML += `<option value='${i}'>${m}</option>`);
-    for(let d=1; d<=31; d++) {
-      day.innerHTML += `<option>${d}</option>`;
-    }
-
-    function calculateTotal() {
-      let c1 = parseFloat(cutoff1.value) || 0;
-      let c2 = parseFloat(cutoff2.value) || 0;
-      totalSalary.value = c1 + c2;
-      updateSummary();
-    }
-
-    function addExpense(desc = '', amt = '') {
-      let div = document.createElement('div');
-      div.className = 'row';
-      div.innerHTML = `
-        <input type="text" placeholder="Description" value="${desc}" oninput="updateSummary()" />
-        <input type="number" placeholder="Amount" value="${amt}" oninput="updateSummary()" />
-      `;
-      document.getElementById('expenses').appendChild(div);
-    }
-
-    function updateSummary() {
-      let salary = parseFloat(totalSalary.value) || 0;
-      let totalExp = 0;
-      document.querySelectorAll('#expenses .row input[type=number]').forEach(input => {
-        totalExp += parseFloat(input.value) || 0;
-      });
-      document.getElementById('totalExpense').innerText = totalExp.toFixed(2);
-      document.getElementById('balance').innerText = (salary - totalExp).toFixed(2);
-      updateChart(totalExp, salary - totalExp);
-    }
-
-    // Chart
-    const ctx = document.getElementById('pieChart').getContext('2d');
-    const pieChart = new Chart(ctx, {
-      type: 'pie',
-      data: {
-        labels: ['Expenses', 'Balance'],
-        datasets: [{
-          data: [0, 0],
-          backgroundColor: ['#ff6384', '#36a2eb']
-        }]
-      }
-    });
-
-    function updateChart(exp, bal) {
-      pieChart.data.datasets[0].data = [exp, bal];
-      pieChart.update();
-    }
-
     function getKey() {
-      return `${year.value}-${month.value}-${day.value}`;
+      const y = document.getElementById('year').value;
+      const m = document.getElementById('month').value;
+      const d = document.getElementById('day').value;
+      return \`\${y}-\${m.padStart?.(2,'0') || m}-\${d.padStart?.(2,'0') || d}\`;
     }
 
-    function saveDay() {
+    function saveData() {
       const key = getKey();
-      const expenses = [];
-      document.querySelectorAll('#expenses .row').forEach(row => {
-        const [desc, amt] = row.querySelectorAll('input');
-        expenses.push({desc: desc.value, amt: amt.value});
-      });
       const data = {
-        cutoff1: cutoff1.value,
-        cutoff2: cutoff2.value,
-        expenses: expenses
+        income: document.getElementById('income').value,
+        expenses: document.getElementById('expenses').value,
+        notes: document.getElementById('notes').value,
       };
       localStorage.setItem(key, JSON.stringify(data));
-      alert('Saved!');
+      alert("Your track today was successfully saved.");
+      clearFields();
     }
 
-    function loadDay() {
-  const key = getKey();
-  const data = JSON.parse(localStorage.getItem(key));
-  if (!data) return alert('No data found.');
-
-  // Restore salary inputs
-  cutoff1.value = data.cutoff1 || '';
-  cutoff2.value = data.cutoff2 || '';
-  calculateTotal();
-
-  // Restore expenses
-  expenses.innerHTML = '';
-  if (Array.isArray(data.expenses)) {
-    data.expenses.forEach(e => addExpense(e.desc, e.amt));
-  }
-
-  // Update all summaries and chart
-  updateSummary();
+    function loadData() {
+      const key = getKey();
+      const data = JSON.parse(localStorage.getItem(key));
+      if (data) {
+        document.getElementById('income').value = data.income;
+        document.getElementById('expenses').value = data.expenses;
+        document.getElementById('notes').value = data.notes;
+      } else {
+        clearFields();
+      }
     }
 
-    function deleteDay() {
+    function deleteData() {
       const key = getKey();
       localStorage.removeItem(key);
-      alert('Deleted');
+      alert("Deleted.");
+      clearFields();
     }
 
-    // Init
-    addExpense();
+    function clearFields() {
+      document.getElementById('income').value = '';
+      document.getElementById('expenses').value = '';
+      document.getElementById('notes').value = '';
+    }
 
-        const today = new Date();
-year.value = today.getFullYear();
-month.value = today.getMonth();
-day.value = today.getDate();
+    function showHistory() {
+      const historyList = document.getElementById('historyList');
+      historyList.innerHTML = '';
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        try {
+          const value = JSON.parse(localStorage.getItem(key));
+          if (value && value.income !== undefined && value.expenses !== undefined) {
+            const li = document.createElement('li');
+            li.textContent = key;
+            historyList.appendChild(li);
+          }
+        } catch {}
+      }
+      document.getElementById('history').style.display = 'block';
+    }
+
+    function exportData() {
+      const allData = {};
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        try {
+          const value = JSON.parse(localStorage.getItem(key));
+          if (value && value.income !== undefined && value.expenses !== undefined) {
+            allData[key] = value;
+          }
+        } catch {}
+      }
+      const blob = new Blob([JSON.stringify(allData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'money-tracker-data.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // Optional: Chart.js demo
+    const ctx = document.getElementById('moneyChart');
+    new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: ['Income', 'Expenses'],
+        datasets: [{
+          data: [0, 0],
+          backgroundColor: ['#4caf50', '#f44336'],
+        }]
+      },
+      options: {
+        responsive: true,
+      }
+    });
   </script>
 </body>
 </html>
