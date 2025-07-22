@@ -1,28 +1,40 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Elegant Tracker</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Money Tracker</title>
+  <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-  <main>
-    <section class="tracker-container">
-      <h1 class="tracker-title">My Daily Tracker</h1>
-      <input type="date" id="datePicker" /><div class="input-group">
-    <input type="text" id="item" placeholder="Track item (e.g., Coffee)" />
-    <input type="number" id="amount" placeholder="Amount (e.g., 50)" />
-    <button id="saveBtn">Save</button>
+  <div class="container">
+    <h1>Money Tracker</h1>
+
+    <div class="calendar-section">
+      <label for="selectedDate">Select Date:</label>
+      <input type="date" id="selectedDate"/>
+    </div>
+
+    <div class="input-section">
+      <input type="text" id="item" placeholder="Item" />
+      <input type="number" id="amount" placeholder="Amount" />
+      <button onclick="addTransaction()">Add</button>
+    </div>
+
+    <ul id="transactionList"></ul>
+
+    <div class="summary">
+      <h2>Total: <span id="total">₱0</span></h2>
+      <canvas id="chart" width="300" height="200"></canvas>
+    </div>
+
+    <div class="actions">
+      <button onclick="saveData()">💾 Save</button>
+      <button onclick="resetData()">🗑️ Reset</button>
+    </div>
   </div>
 
-  <ul id="trackList"></ul>
-
-  <div class="actions">
-    <button id="backupBtn">Backup</button>
-    <input type="file" id="restoreFile" hidden />
-    <button id="restoreBtn">Restore</button>
-  </div>
-</section>
-
-  </main>  <script src="script.js"></script></body>
+  <script src="chart.umd.js"></script>
+  <script src="script.js"></script>
+</body>
 </html>
