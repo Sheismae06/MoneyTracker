@@ -5,67 +5,67 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Money Tracker</title>
   <link rel="stylesheet" href="style.css" />
+  <script src="chart.umd.js"></script>
 </head>
 <body>
+  <div class="container">
+    <h1>Money Tracker</h1>
 
-  <nav>
-    <span>Money Tracker</span>
-  </nav>
-
-  <main>
-    <section class="salary-section">
-      <h2>Salary Input</h2>
-      <div class="salary-inputs">
-        <label>Cutoff 1: ₱ <input type="number" id="cutoff1" /></label>
-        <label>Cutoff 2: ₱ <input type="number" id="cutoff2" /></label>
-      </div>
-      <div class="total-salary">
-        Total Salary: ₱ <span id="total-salary">0.00</span>
-      </div>
-    </section>
-
-    <section class="date-picker">
-      <h2>Select Date</h2>
-      <div class="date-selectors">
-        <select id="year"></select>
+    <!-- Select Date -->
+    <div class="section">
+      <label for="month">Select Date:</label>
+      <div class="dropdowns">
         <select id="month"></select>
         <select id="day"></select>
+        <select id="year"></select>
       </div>
-    </section>
+    </div>
 
-    <section class="expenses-section">
-      <h2>Daily Expenses</h2>
-      <div id="expenses-list">
-        <div class="expense-row">
-          <input type="text" placeholder="Description" class="desc-input" />
-          ₱ <input type="number" class="amount-input" />
+    <!-- Salary Input -->
+    <div class="section">
+      <h2>Salary Input</h2>
+      <label>Cutoff 1:</label>
+      <input type="number" id="cutoff1" placeholder="Enter amount" />
+      <label>Cutoff 2:</label>
+      <input type="number" id="cutoff2" placeholder="Enter amount" />
+      <p><strong>Total Salary:</strong> <span id="total-salary">₱0.00</span></p>
+    </div>
+
+    <!-- Daily Expenses -->
+    <div class="section">
+      <h2>Daily Expenses / Bills</h2>
+      <div id="expense-list">
+        <div class="expense-item">
+          <input type="text" placeholder="Description" class="desc" />
+          <input type="number" placeholder="Amount" class="amt" />
         </div>
       </div>
-      <button id="add-expense">+ Add More</button>
-      <div class="totals">
-        Total Expense: ₱ <span id="total-expense">0.00</span><br>
-        Balance: ₱ <span id="balance">0.00</span>
-      </div>
-    </section>
+      <button id="add-expense">Add More</button>
+      <p><strong>Total Expenses:</strong> <span id="total-expenses">₱0.00</span></p>
+    </div>
 
-    <section class="chart-section">
+    <!-- Computation -->
+    <div class="section">
+      <h2>Computation for Today</h2>
+      <p><strong>Total Salary:</strong> <span id="comp-salary">₱0.00</span></p>
+      <p><strong>Total Expenses/Bills:</strong> <span id="comp-expenses">₱0.00</span></p>
+      <p><strong>Balance:</strong> <span id="comp-balance">₱0.00</span></p>
+    </div>
+
+    <!-- Chart -->
+    <div class="section">
       <h2>Expense Chart</h2>
       <canvas id="expense-chart" width="300" height="300"></canvas>
-    </section>
+    </div>
 
-    <section class="save-section">
-      <button id="save-btn">💾 Save</button>
-      <button id="load-btn">📅 Load</button>
-      <button id="edit-btn">✏️ Edit</button>
-      <button id="delete-btn">🗑️ Delete</button>
-    </section>
+    <!-- Save/Edit/Delete Buttons -->
+    <div class="section">
+      <button id="save-btn">Save</button>
+      <button id="edit-btn">Edit</button>
+      <button id="delete-btn">Delete</button>
+    </div>
+  </div>
 
-    <footer>
-      <small>Owned by Mae</small>
-    </footer>
-  </main>
-
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
