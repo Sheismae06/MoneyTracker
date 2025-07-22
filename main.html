@@ -194,15 +194,23 @@
     }
 
     function loadDay() {
-      const key = getKey();
-      const data = JSON.parse(localStorage.getItem(key));
-      if (!data) return alert('No data found');
-      cutoff1.value = data.cutoff1;
-      cutoff2.value = data.cutoff2;
-      calculateTotal();
-      expenses.innerHTML = '';
-      data.expenses.forEach(e => addExpense(e.desc, e.amt));
-      updateSummary();
+  const key = getKey();
+  const data = JSON.parse(localStorage.getItem(key));
+  if (!data) return alert('No data found.');
+
+  // Restore salary inputs
+  cutoff1.value = data.cutoff1 || '';
+  cutoff2.value = data.cutoff2 || '';
+  calculateTotal();
+
+  // Restore expenses
+  expenses.innerHTML = '';
+  if (Array.isArray(data.expenses)) {
+    data.expenses.forEach(e => addExpense(e.desc, e.amt));
+  }
+
+  // Update all summaries and chart
+  updateSummary();
     }
 
     function deleteDay() {
@@ -213,6 +221,11 @@
 
     // Init
     addExpense();
+
+        const today = new Date();
+year.value = today.getFullYear();
+month.value = today.getMonth();
+day.value = today.getDate();
   </script>
 </body>
 </html>
