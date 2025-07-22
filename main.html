@@ -8,144 +8,100 @@
 </head>
 <body>
   <nav class="navbar">
-    <h1>Money Tracker</h1>
+    <!-- Plain navbar, no Menu | Settings -->
   </nav>
 
-  <section class="calendar">
-    <label>
-      Year:
-      <input type="number" id="year" value="2025" />
-    </label>
-    <label>
-      Month:
-      <input type="number" id="month" value="7" />
-    </label>
-    <label>
-      Day:
-      <input type="number" id="day" value="22" />
-    </label>
-    <button onclick="loadData()">Load</button>
+  <!-- Calendar on top -->
+  <section style="text-align: center; margin-top: 20px;">
+    <label for="trackDate">📅 Select a Date:</label>
+    <input type="date" id="trackDate">
+    <button onclick="loadTrack()">Show History</button>
+    <button onclick="exportTracks()">Export</button>
   </section>
+
+  <header>
+    <h1>Daily Money Tracker</h1>
+  </header>
 
   <main>
     <section class="tracker">
-      <input type="text" id="income" placeholder="Enter Income" />
-      <input type="text" id="expenses" placeholder="Enter Expenses" />
-      <textarea id="notes" placeholder="Notes..."></textarea>
-      <button onclick="saveData()">Save</button>
-      <button onclick="deleteData()">Delete</button>
-      <button onclick="showHistory()">Show History</button>
-      <button onclick="exportData()">Export Data</button>
-    </section>
+      <label for="income">Income</label>
+      <input type="number" id="income" placeholder="Enter income" />
 
-    <section class="chart">
-      <canvas id="moneyChart"></canvas>
-    </section>
+      <label for="expenses">Expenses</label>
+      <input type="number" id="expenses" placeholder="Enter expenses" />
 
-    <section class="history" id="history" style="display:none;">
-      <h3>Saved Dates:</h3>
-      <ul id="historyList"></ul>
+      <label for="notes">Notes</label>
+      <textarea id="notes" placeholder="Enter notes (optional)"></textarea>
+
+      <button onclick="saveTrack()">Save</button>
+      <p id="saveStatus" style="color: gold; margin-top: 10px;"></p>
     </section>
   </main>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-    function getKey() {
-      const y = document.getElementById('year').value;
-      const m = document.getElementById('month').value;
-      const d = document.getElementById('day').value;
-      return \`\${y}-\${m.padStart?.(2,'0') || m}-\${d.padStart?.(2,'0') || d}\`;
-    }
+    const storageKey = 'moneyTrackerData';
 
-    function saveData() {
-      const key = getKey();
-      const data = {
-        income: document.getElementById('income').value,
-        expenses: document.getElementById('expenses').value,
-        notes: document.getElementById('notes').value,
-      };
-      localStorage.setItem(key, JSON.stringify(data));
-      alert("Your track today was successfully saved.");
-      clearFields();
-    }
+    function saveTrack() {
+      const date = new Date().toISOString().split('T')[0];
+      const income = document.getElementById('income').value;
+      const expenses = document.getElementById('expenses').value;
+      const notes = document.getElementById('notes').value;
 
-    function loadData() {
-      const key = getKey();
-      const data = JSON.parse(localStorage.getItem(key));
-      if (data) {
-        document.getElementById('income').value = data.income;
-        document.getElementById('expenses').value = data.expenses;
-        document.getElementById('notes').value = data.notes;
-      } else {
-        clearFields();
-      }
-    }
+      if (!income && !expenses && !notes) return;
 
-    function deleteData() {
-      const key = getKey();
-      localStorage.removeItem(key);
-      alert("Deleted.");
-      clearFields();
-    }
+      const data = JSON.parse(localStorage.getItem(storageKey)) || {};
+      data[date] = { income, expenses, notes };
+      localStorage.setItem(storageKey, JSON.stringify(data));
 
-    function clearFields() {
+      document.getElementById('saveStatus').textContent = "Your track today was successfully saved.";
+      setTimeout(() => {
+        document.getElementById('saveStatus').textContent = "";
+      }, 3000);
+
       document.getElementById('income').value = '';
       document.getElementById('expenses').value = '';
       document.getElementById('notes').value = '';
     }
 
-    function showHistory() {
-      const historyList = document.getElementById('historyList');
-      historyList.innerHTML = '';
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        try {
-          const value = JSON.parse(localStorage.getItem(key));
-          if (value && value.income !== undefined && value.expenses !== undefined) {
-            const li = document.createElement('li');
-            li.textContent = key;
-            historyList.appendChild(li);
-          }
-        } catch {}
+    function loadTrack() {
+      const selectedDate = document.getElementById('trackDate').value;
+      const data = JSON.parse(localStorage.getItem(storageKey)) || {};
+      const track = data[selectedDate];
+
+      if (track) {
+        document.getElementById('income').value = track.income;
+        document.getElementById('expenses').value = track.expenses;
+        document.getElementById('notes').value = track.notes;
+        document.getElementById('saveStatus').textContent = `Showing track from ${selectedDate}`;
+        setTimeout(() => {
+          document.getElementById('saveStatus').textContent = "";
+        }, 3000);
+      } else {
+        document.getElementById('saveStatus').textContent = `No track found for ${selectedDate}`;
+        setTimeout(() => {
+          document.getElementById('saveStatus').textContent = "";
+        }, 3000);
       }
-      document.getElementById('history').style.display = 'block';
     }
 
-    function exportData() {
-      const allData = {};
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        try {
-          const value = JSON.parse(localStorage.getItem(key));
-          if (value && value.income !== undefined && value.expenses !== undefined) {
-            allData[key] = value;
-          }
-        } catch {}
+    function exportTracks() {
+      const data = JSON.parse(localStorage.getItem(storageKey)) || {};
+      let content = 'Saved Tracks:\n\n';
+
+      for (const [date, entry] of Object.entries(data)) {
+        content += `Date: ${date}\nIncome: ${entry.income}\nExpenses: ${entry.expenses}\nNotes: ${entry.notes || 'None'}\n\n`;
       }
-      const blob = new Blob([JSON.stringify(allData, null, 2)], { type: 'application/json' });
+
+      const blob = new Blob([content], { type: "text/plain" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'money-tracker-data.json';
+      a.download = 'Money_Tracker_History.txt';
+      document.body.appendChild(a);
       a.click();
-      URL.revokeObjectURL(url);
+      document.body.removeChild(a);
     }
-
-    // Optional: Chart.js demo
-    const ctx = document.getElementById('moneyChart');
-    new Chart(ctx, {
-      type: 'pie',
-      data: {
-        labels: ['Income', 'Expenses'],
-        datasets: [{
-          data: [0, 0],
-          backgroundColor: ['#4caf50', '#f44336'],
-        }]
-      },
-      options: {
-        responsive: true,
-      }
-    });
   </script>
 </body>
 </html>
