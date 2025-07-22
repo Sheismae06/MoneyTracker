@@ -1,150 +1,153 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const dateInput = document.getElementById("date");
-  const form = document.getElementById("expense-form");
-  const addMoreBtn = document.getElementById("add-more");
+  const expenseForm = document.getElementById("expense-form");
   const expenseFields = document.getElementById("expense-fields");
+  const addMoreBtn = document.getElementById("add-more");
   const totalDisplay = document.getElementById("total");
+  const dateInput = document.getElementById("date");
   const trackList = document.getElementById("track-list");
 
-  let editingEntry = null;
-
-  // Default to today's date
-  dateInput.valueAsDate = new Date();
+  const yearFilter = document.getElementById("yearFilter");
+  const monthFilter = document.getElementById("monthFilter");
+  const dayFilter = document.getElementById("dayFilter");
+  const filterBtn = document.getElementById("filterBtn");
 
   function calculateTotal() {
+    const amounts = expenseFields.querySelectorAll(".amount");
     let total = 0;
-    const amountInputs = document.querySelectorAll(".amount");
-    amountInputs.forEach((input) => {
-      total += parseFloat(input.value) || 0;
+    amounts.forEach(input => {
+      const value = parseFloat(input.value);
+      if (!isNaN(value)) total += value;
     });
     totalDisplay.textContent = total.toFixed(2);
   }
 
-  function createExpenseRow(description = "", amount = "") {
-    const row = document.createElement("div");
-    row.className = "expense-row";
-
-    const descInput = document.createElement("input");
-    descInput.type = "text";
-    descInput.className = "description";
-    descInput.placeholder = "Description";
-    descInput.value = description;
-
-    const amountInput = document.createElement("input");
-    amountInput.type = "number";
-    amountInput.className = "amount";
-    amountInput.placeholder = "Amount";
-    amountInput.value = amount;
-
-    amountInput.addEventListener("input", calculateTotal);
-
-    row.appendChild(descInput);
-    row.appendChild(amountInput);
-
-    return row;
-  }
+  expenseFields.addEventListener("input", calculateTotal);
 
   addMoreBtn.addEventListener("click", () => {
-    const newRow = createExpenseRow();
+    const newRow = document.createElement("div");
+    newRow.className = "expense-row";
+    newRow.innerHTML = `
+      <input type="text" class="description" placeholder="Description" required />
+      <input type="number" class="amount" placeholder="Amount" required />
+    `;
     expenseFields.appendChild(newRow);
   });
 
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const date = dateInput.value;
-    if (!date) return alert("Please select a date");
+  function getSavedExpenses() {
+    return JSON.parse(localStorage.getItem("expenses") || "[]");
+  }
 
-    const expenses = [];
-    const rows = expenseFields.querySelectorAll(".expense-row");
+  function saveExpenses(expenses) {
+    localStorage.setItem("expenses", JSON.stringify(expenses));
+  }
 
-    rows.forEach((row) => {
-      const description = row.querySelector(".description").value.trim();
-      const amount = parseFloat(row.querySelector(".amount").value) || 0;
-      if (description) {
-        expenses.push({ description, amount });
-      }
+  function updateFiltersDropdowns(expenses) {
+    const years = new Set();
+    const months = new Set();
+    const days = new Set();
+
+    expenses.forEach(exp => {
+      const [year, month, day] = exp.date.split("-");
+      years.add(year);
+      months.add(month);
+      days.add(day);
     });
 
-    if (expenses.length === 0) return alert("Please enter at least one expense.");
-
-    const data = JSON.parse(localStorage.getItem("expenses") || "{}");
-
-    data[date] = expenses;
-    localStorage.setItem("expenses", JSON.stringify(data));
-    loadSavedTracks();
-    form.reset();
-    expenseFields.innerHTML = "";
-    expenseFields.appendChild(createExpenseRow());
-    calculateTotal();
-  });
-
-  function loadSavedTracks() {
-    trackList.innerHTML = "";
-    const data = JSON.parse(localStorage.getItem("expenses") || "{}");
-
-    Object.keys(data).sort().reverse().forEach((date) => {
-      const section = document.createElement("div");
-      section.className = "track-date";
-
-      const title = document.createElement("h3");
-      title.textContent = date;
-      section.appendChild(title);
-
-      const list = document.createElement("ul");
-      let total = 0;
-
-      data[date].forEach((entry, idx) => {
-        const item = document.createElement("li");
-        item.innerHTML = `
-          <strong>${entry.description}</strong> - PHP ${entry.amount.toFixed(2)}
-          <button class="edit-btn" data-date="${date}" data-index="${idx}">✏️</button>
-          <button class="delete-btn" data-date="${date}" data-index="${idx}">🗑️</button>
-        `;
-        total += entry.amount;
-        list.appendChild(item);
+    const setOptions = (select, set, label) => {
+      select.innerHTML = `<option value="">${label}</option>`;
+      Array.from(set).sort().forEach(val => {
+        select.innerHTML += `<option value="${val}">${val}</option>`;
       });
+    };
 
-      const totalEl = document.createElement("p");
-      totalEl.innerHTML = `<strong>Total:</strong> PHP ${total.toFixed(2)}`;
+    setOptions(yearFilter, years, "Year");
+    setOptions(monthFilter, months, "Month");
+    setOptions(dayFilter, days, "Day");
+  }
 
-      section.appendChild(list);
-      section.appendChild(totalEl);
-      trackList.appendChild(section);
+  function renderSavedExpenses(filter = {}) {
+    const expenses = getSavedExpenses();
+    trackList.innerHTML = "";
+
+    const filtered = expenses.filter(exp => {
+      const [y, m, d] = exp.date.split("-");
+      return (!filter.year || filter.year === y) &&
+             (!filter.month || filter.month === m) &&
+             (!filter.day || filter.day === d);
+    });
+
+    if (filtered.length === 0) {
+      trackList.innerHTML = "<p>No expenses found.</p>";
+      return;
+    }
+
+    filtered.forEach(entry => {
+      const div = document.createElement("div");
+      div.className = "saved-entry";
+      div.innerHTML = `
+        <strong>${entry.date}</strong>
+        <ul>
+          ${entry.items.map(i => `<li>${i.description}: PHP ${parseFloat(i.amount).toFixed(2)}</li>`).join("")}
+        </ul>
+        <em>Total: PHP ${parseFloat(entry.total).toFixed(2)}</em>
+      `;
+      trackList.appendChild(div);
     });
   }
 
-  trackList.addEventListener("click", (e) => {
-    if (e.target.classList.contains("delete-btn")) {
-      const { date, index } = e.target.dataset;
-      const data = JSON.parse(localStorage.getItem("expenses") || "{}");
+  expenseForm.addEventListener("submit", (e) => {
+    e.preventDefault();
 
-      data[date].splice(index, 1);
-      if (data[date].length === 0) delete data[date];
-
-      localStorage.setItem("expenses", JSON.stringify(data));
-      loadSavedTracks();
+    const date = dateInput.value;
+    if (!date) {
+      alert("Please select a date.");
+      return;
     }
 
-    if (e.target.classList.contains("edit-btn")) {
-      const { date, index } = e.target.dataset;
-      const data = JSON.parse(localStorage.getItem("expenses") || "{}");
-      const entry = data[date][index];
+    const items = [];
+    const rows = expenseFields.querySelectorAll(".expense-row");
 
-      // Pre-fill form
-      dateInput.value = date;
-      expenseFields.innerHTML = "";
-      expenseFields.appendChild(createExpenseRow(entry.description, entry.amount));
-      calculateTotal();
+    rows.forEach(row => {
+      const description = row.querySelector(".description").value.trim();
+      const amount = row.querySelector(".amount").value.trim();
+      if (description && amount) {
+        items.push({ description, amount });
+      }
+    });
 
-      // Remove the entry from the list before re-saving
-      data[date].splice(index, 1);
-      if (data[date].length === 0) delete data[date];
-      localStorage.setItem("expenses", JSON.stringify(data));
-      loadSavedTracks();
+    if (items.length === 0) {
+      alert("Please enter at least one expense.");
+      return;
     }
+
+    const total = items.reduce((sum, item) => sum + parseFloat(item.amount), 0);
+
+    const expenses = getSavedExpenses();
+    expenses.push({ date, items, total });
+    saveExpenses(expenses);
+    updateFiltersDropdowns(expenses);
+    renderSavedExpenses();
+    expenseForm.reset();
+    expenseFields.innerHTML = `
+      <div class="expense-row">
+        <input type="text" class="description" placeholder="Description" required />
+        <input type="number" class="amount" placeholder="Amount" required />
+      </div>
+    `;
+    totalDisplay.textContent = "0.00";
   });
 
-  // Initial load
-  expenseFields.appendChild(createExpenseRow());
-  loadSavedTracks();
+  filterBtn.addEventListener("click", () => {
+    const filter = {
+      year: yearFilter.value,
+      month: monthFilter.value,
+      day: dayFilter.value
+    };
+    renderSavedExpenses(filter);
+  });
+
+  // Initialize
+  const savedExpenses = getSavedExpenses();
+  updateFiltersDropdowns(savedExpenses);
+  renderSavedExpenses();
 });
