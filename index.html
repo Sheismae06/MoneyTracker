@@ -1,82 +1,59 @@
-<!DOCTYPE html><html lang="en">
-<head>
+<!DOCTYPE html><html lang="en"><head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Money Tracker</title>
+  <title>Mae's Money Tracker</title>
   <link rel="stylesheet" href="style.css" />
-  <script defer src="script.js"></script>
-</head>
-<body>
+</head><body>
+  <!-- Navbar -->
   <nav class="navbar">
-    <h1 class="logo">Money Tracker</h1>
-  </nav>  <main class="container">
-    <section class="salary-section">
-      <h2>Salary Summary</h2>
-      <div class="salary-inputs">
-        <label>Cut-off 1 Salary: <input type="number" id="cutoff1" /></label>
-        <label>Cut-off 2 Salary: <input type="number" id="cutoff2" /></label>
-        <div class="total-salary">Total: <span id="totalSalary">₱0.00</span></div>
-      </div>
-    </section><section class="date-select">
-  <label for="month">Month:</label>
-  <select id="month">
-    <option disabled selected>Select Month</option>
-    <option>January</option>
-    <option>February</option>
-    <option>March</option>
-    <option>April</option>
-    <option>May</option>
-    <option>June</option>
-    <option>July</option>
-    <option>August</option>
-    <option>September</option>
-    <option>October</option>
-    <option>November</option>
-    <option>December</option>
-  </select>
-
-  <label for="year">Year:</label>
-  <select id="year">
-    <option disabled selected>Select Year</option>
-    <!-- Years 2025 to 2050 -->
-    <script>
-      for(let y = 2025; y <= 2050; y++) {
-        document.write(`<option>${y}</option>`);
-      }
-    </script>
-  </select>
-
-  <label for="day">Day:</label>
-  <select id="day">
-    <option disabled selected>Select Day</option>
-    <script>
-      for(let d = 1; d <= 31; d++) {
-        document.write(`<option>${d}</option>`);
-      }
-    </script>
-  </select>
-</section>
-
-<section class="expenses">
-  <h2>Daily Expense</h2>
-  <div id="expenseInputs">
-    <div class="expense-row">
-      <input type="text" placeholder="Category (e.g. Fare)" class="expense-label" />
-      <input type="number" placeholder="Amount" class="expense-amount" />
+    <div class="navbar-brand">Mae's Tracker</div>
+    <div class="music-toggle" id="musicToggle">
+      <svg id="musicIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+        <path d="M9 17V5l12-2v12" fill="none" stroke="gold" stroke-width="2"/>
+        <circle cx="6" cy="18" r="3" fill="white" stroke="gold" stroke-width="2"/>
+        <circle cx="18" cy="16" r="3" fill="white" stroke="gold" stroke-width="2"/>
+      </svg>
     </div>
-  </div>
-  <button onclick="addExpenseRow()">+ Add More</button>
-  <div class="day-total">Total: <span id="dayTotal">₱0.00</span></div>
-  <button onclick="saveDayExpense()">Save</button>
-</section>
+  </nav>  <!-- Title -->  <header class="header">
+    <h1>Money Tracker</h1>
+    <p class="subtitle">Track your daily spending easily and elegantly</p>
+  </header>  <!-- Form -->  <section class="tracker">
+    <div class="form-group">
+      <label>Date:</label>
+      <input type="date" id="entry-date" /><label>Amount (PHP):</label>
+  <input type="number" id="entry-amount" />
 
-<section class="chart">
-  <h2>Spending Graph</h2>
-  <canvas id="expenseChart" height="200"></canvas>
-</section>
+  <label>Type:</label>
+  <select id="entry-type">
+    <option value="income">Income</option>
+    <option value="expense">Expense</option>
+  </select>
 
-  </main>  <footer>
-    <small>Owned by Mae</small>
-  </footer>
-</body>
-</html>
+  <label>Note:</label>
+  <input type="text" id="entry-note" placeholder="Description (optional)" />
+
+  <button onclick="saveEntry()">Save</button>
+</div>
+
+  </section>  <!-- Table of Entries -->  <section class="table-section">
+    <table id="entries-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Amount</th>
+          <th>Type</th>
+          <th>Note</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>  <!-- Totals and Graph -->  <section class="summary">
+    <h2>Total Summary</h2>
+    <div id="totals"></div>
+    <canvas id="summary-chart"></canvas>
+  </section>  <footer>
+    <p>Owned by Mae</p>
+  </footer>  <!-- Audio -->  <audio id="bg-music" loop>
+    <source src="https://www.youtube.com/embed/qBeX-iF_SpM" type="audio/mpeg" />
+  </audio>  <script src="script.js"></script></body></html>
