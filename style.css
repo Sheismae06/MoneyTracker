@@ -1,0 +1,53 @@
+body {
+  font-family: sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f8f8f8;
+}
+
+nav {
+  background-color: #333;
+  color: #fff;
+  padding: 10px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.music-icon {
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.salary-inputs, .selector, .entries, .history, .chart-section {
+  padding: 20px;
+}
+
+input[type="number"], input[type="text"], select {
+  margin: 5px;
+  padding: 5px;
+}
+
+.entry {
+  display: flex;
+  gap: 10px;
+}
+
+button {
+  margin-top: 10px;
+  padding: 5px 10px;
+}
+
+.total, #totalSalary, #overallTotal {
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+canvas {
+  max-width: 100%;
+}
