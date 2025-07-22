@@ -1,23 +1,19 @@
-// Initialization
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('expense-form');
-  const addMoreBtn = document.getElementById('add-more');
-  const dateInput = document.getElementById('date');
   const trackList = document.getElementById('track-list');
   const totalDisplay = document.getElementById('total');
+  const addMoreBtn = document.getElementById('add-more');
   const filterBtn = document.getElementById('filterBtn');
-  const startDateInput = document.getElementById('startDate');
-  const endDateInput = document.getElementById('endDate');
 
-  let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+  let tracks = JSON.parse(localStorage.getItem('tracks')) || [];
 
-  // Render all expenses at start
-  renderExpenses();
+  // Render All Tracks
+  renderTracks();
 
-  // Recalculate total whenever fields change
-  form.addEventListener('input', updateTotal);
+  // Recalculate total on any input
+  form.addEventListener('input', calculateTotal);
 
-  // Add new expense row
+  // Add More Fields
   addMoreBtn.addEventListener('click', () => {
     const row = document.createElement('div');
     row.className = 'expense-row';
@@ -28,107 +24,133 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('expense-fields').appendChild(row);
   });
 
-  // Save expenses
+  // Save Entries
   form.addEventListener('submit', (e) => {
     e.preventDefault();
-    const selectedDate = dateInput.value;
-    if (!selectedDate) {
-      alert('Please select a date.');
+
+    const date = document.getElementById('date').value;
+    const descriptions = document.querySelectorAll('.description');
+    const amounts = document.querySelectorAll('.amount');
+
+    const entries = Array.from(descriptions).map((desc, i) => ({
+      description: desc.value.trim(),
+      amount: parseFloat(amounts[i].value) || 0
+    })).filter(e => e.description && !isNaN(e.amount) && e.amount > 0);
+
+    if (!date || entries.length === 0) {
+      alert('Please complete the form with valid data.');
       return;
     }
 
-    const rows = document.querySelectorAll('.expense-row');
-    rows.forEach(row => {
-      const desc = row.querySelector('.description').value.trim();
-      const amount = parseFloat(row.querySelector('.amount').value);
-      if (desc && !isNaN(amount)) {
-        expenses.push({
-          date: selectedDate,
-          description: desc,
-          amount: amount
-        });
-      }
-    });
+    // Save track
+    tracks.push({ date, entries });
+    localStorage.setItem('tracks', JSON.stringify(tracks));
 
-    localStorage.setItem('expenses', JSON.stringify(expenses));
-    alert('Saved successfully!');
+    // Reset form
     form.reset();
     document.getElementById('expense-fields').innerHTML = `
       <div class="expense-row">
         <input type="text" class="description" placeholder="Description" required />
         <input type="number" class="amount" placeholder="Amount" required />
-      </div>
-    `;
-    updateTotal();
-    renderExpenses();
+      </div>`;
+    calculateTotal();
+    renderTracks();
   });
 
-  // Update total
-  function updateTotal() {
-    const amounts = document.querySelectorAll('.amount');
+  // Real-time Total Calculation
+  function calculateTotal() {
+    const amountInputs = document.querySelectorAll('.amount');
     let total = 0;
-    amounts.forEach(input => {
+    amountInputs.forEach(input => {
       const val = parseFloat(input.value);
       if (!isNaN(val)) total += val;
     });
     totalDisplay.textContent = total.toFixed(2);
   }
 
-  // Filter by date range
-  filterBtn.addEventListener('click', () => {
-    const start = new Date(startDateInput.value);
-    const end = new Date(endDateInput.value);
-    if (!startDateInput.value || !endDateInput.value) {
-      alert('Please select both start and end date.');
-      return;
-    }
-
-    const filtered = expenses.filter(e => {
-      const expDate = new Date(e.date);
-      return expDate >= start && expDate <= end;
+  // Edit Track
+  function editTrack(index) {
+    const track = tracks[index];
+    document.getElementById('date').value = track.date;
+    const expenseFields = document.getElementById('expense-fields');
+    expenseFields.innerHTML = '';
+    track.entries.forEach(entry => {
+      const row = document.createElement('div');
+      row.className = 'expense-row';
+      row.innerHTML = `
+        <input type="text" class="description" placeholder="Description" value="${entry.description}" required />
+        <input type="number" class="amount" placeholder="Amount" value="${entry.amount}" required />
+      `;
+      expenseFields.appendChild(row);
     });
 
-    renderExpenses(filtered);
-  });
+    tracks.splice(index, 1);
+    localStorage.setItem('tracks', JSON.stringify(tracks));
+    renderTracks();
+    calculateTotal();
+  }
 
-  // Render function
-  function renderExpenses(filteredData = expenses) {
+  // Render all or filtered tracks
+  function renderTracks(filtered = tracks) {
     trackList.innerHTML = '';
-    if (filteredData.length === 0) {
-      trackList.innerHTML = '<p>No expenses found.</p>';
+
+    if (filtered.length === 0) {
+      trackList.innerHTML = '<p>No entries found.</p>';
       return;
     }
 
-    filteredData.forEach((entry, index) => {
-      const div = document.createElement('div');
-      div.className = 'track-entry';
-      div.innerHTML = `
-        <strong>${entry.date}</strong> - ${entry.description}: PHP ${entry.amount.toFixed(2)}
-        <button onclick="deleteEntry(${index})">🗑️ Delete</button>
-        <button onclick="editEntry(${index})">✏️ Edit</button>
-      `;
-      trackList.appendChild(div);
+    filtered.forEach((track, index) => {
+      const container = document.createElement('div');
+      container.className = 'track-item';
+
+      const date = document.createElement('div');
+      date.textContent = `📅 ${track.date}`;
+
+      const list = document.createElement('ul');
+      track.entries.forEach(entry => {
+        const item = document.createElement('li');
+        item.textContent = `${entry.description} - PHP ${entry.amount.toFixed(2)}`;
+        list.appendChild(item);
+      });
+
+      const total = document.createElement('div');
+      const sum = track.entries.reduce((a, b) => a + b.amount, 0);
+      total.textContent = `Total: PHP ${sum.toFixed(2)}`;
+
+      const editBtn = document.createElement('button');
+      editBtn.textContent = '✏️ Edit';
+      editBtn.onclick = () => editTrack(index);
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.textContent = '🗑️ Delete';
+      deleteBtn.onclick = () => {
+        if (confirm('Are you sure you want to delete this?')) {
+          tracks.splice(index, 1);
+          localStorage.setItem('tracks', JSON.stringify(tracks));
+          renderTracks();
+        }
+      };
+
+      container.appendChild(date);
+      container.appendChild(list);
+      container.appendChild(total);
+      container.appendChild(editBtn);
+      container.appendChild(deleteBtn);
+      trackList.appendChild(container);
     });
   }
 
-  // Delete function
-  window.deleteEntry = function(index) {
-    if (confirm('Are you sure you want to delete this entry?')) {
-      expenses.splice(index, 1);
-      localStorage.setItem('expenses', JSON.stringify(expenses));
-      renderExpenses();
-    }
-  };
+  // Filter by date range
+  filterBtn.addEventListener('click', () => {
+    const start = document.getElementById('startDate').value;
+    const end = document.getElementById('endDate').value;
 
-  // Edit function
-  window.editEntry = function(index) {
-    const newDesc = prompt('Edit description:', expenses[index].description);
-    const newAmount = prompt('Edit amount:', expenses[index].amount);
-    if (newDesc !== null && newAmount !== null && !isNaN(parseFloat(newAmount))) {
-      expenses[index].description = newDesc.trim();
-      expenses[index].amount = parseFloat(newAmount);
-      localStorage.setItem('expenses', JSON.stringify(expenses));
-      renderExpenses();
+    if (!start || !end) {
+      alert('Please select both start and end dates.');
+      return;
     }
-  };
+
+    const filtered = tracks.filter(t => t.date >= start && t.date <= end);
+    renderTracks(filtered);
+  });
 });
