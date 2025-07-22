@@ -1,140 +1,147 @@
-// Populate Month, Day, Year dropdowns
-const yearFilter = document.getElementById("yearFilter");
-const monthFilter = document.getElementById("monthFilter");
-const dayFilter = document.getElementById("dayFilter");
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("expense-form");
+  const addMoreBtn = document.getElementById("add-more");
+  const dateInput = document.getElementById("date");
+  const totalDisplay = document.getElementById("total");
+  const trackList = document.getElementById("track-list");
+  const yearFilter = document.getElementById("yearFilter");
+  const monthFilter = document.getElementById("monthFilter");
+  const dayFilter = document.getElementById("dayFilter");
+  const filterBtn = document.getElementById("filterBtn");
 
-function populateDateDropdowns() {
-  // Year: 2025 to 3000
-  for (let y = 2025; y <= 3000; y++) {
-    const opt = document.createElement("option");
-    opt.value = y;
-    opt.textContent = y;
-    yearFilter.appendChild(opt);
-  }
-
-  // Month: January to December
   const months = [
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"
   ];
-  months.forEach((month, index) => {
-    const opt = document.createElement("option");
-    opt.value = index + 1; // 1 to 12
-    opt.textContent = month;
-    monthFilter.appendChild(opt);
-  });
 
-  // Day: 1 to 31
-  for (let d = 1; d <= 31; d++) {
-    const opt = document.createElement("option");
-    opt.value = d;
-    opt.textContent = d;
-    dayFilter.appendChild(opt);
-  }
-}
-
-populateDateDropdowns();
-
-// Add more fields
-const addMoreBtn = document.getElementById("add-more");
-addMoreBtn.addEventListener("click", () => {
-  const container = document.createElement("div");
-  container.classList.add("expense-row");
-  container.innerHTML = `
-    <input type="text" class="description" placeholder="Description" required />
-    <input type="number" class="amount" placeholder="Amount" required />
-  `;
-  document.getElementById("expense-fields").appendChild(container);
-});
-
-// Save and compute
-const expenseForm = document.getElementById("expense-form");
-let savedExpenses = JSON.parse(localStorage.getItem("expenses") || "[]");
-
-expenseForm.addEventListener("submit", (e) => {
-  e.preventDefault();
-
-  const date = document.getElementById("date").value;
-  if (!date) return alert("Please select a date first.");
-
-  const descriptions = document.querySelectorAll(".description");
-  const amounts = document.querySelectorAll(".amount");
-
-  const entries = [];
-  let total = 0;
-
-  descriptions.forEach((desc, i) => {
-    const description = desc.value.trim();
-    const amount = parseFloat(amounts[i].value);
-
-    if (description && !isNaN(amount)) {
-      entries.push({ description, amount });
-      total += amount;
+  // Populate filter dropdowns
+  function populateFilters() {
+    for (let y = 2025; y <= 3000; y++) {
+      const opt = document.createElement("option");
+      opt.value = y;
+      opt.textContent = y;
+      yearFilter.appendChild(opt);
     }
-  });
 
-  savedExpenses.push({ date, entries, total });
-  localStorage.setItem("expenses", JSON.stringify(savedExpenses));
+    months.forEach((month, index) => {
+      const opt = document.createElement("option");
+      opt.value = index + 1;
+      opt.textContent = month;
+      monthFilter.appendChild(opt);
+    });
 
-  renderSavedExpenses();
-  expenseForm.reset();
-  document.getElementById("total").textContent = "0.00";
-});
-
-// Live total calculator
-expenseForm.addEventListener("input", () => {
-  const amounts = document.querySelectorAll(".amount");
-  let total = 0;
-  amounts.forEach(input => {
-    const value = parseFloat(input.value);
-    if (!isNaN(value)) total += value;
-  });
-  document.getElementById("total").textContent = total.toFixed(2);
-});
-
-// Render saved
-function renderSavedExpenses(filterDate = null) {
-  const list = document.getElementById("track-list");
-  list.innerHTML = "";
-
-  let filtered = savedExpenses;
-  if (filterDate) {
-    filtered = savedExpenses.filter(exp => exp.date === filterDate);
+    for (let d = 1; d <= 31; d++) {
+      const opt = document.createElement("option");
+      opt.value = d;
+      opt.textContent = d;
+      dayFilter.appendChild(opt);
+    }
   }
 
-  if (filtered.length === 0) {
-    list.innerHTML = "<p>No saved expenses found.</p>";
-    return;
-  }
+  populateFilters();
 
-  filtered.forEach(exp => {
-    const div = document.createElement("div");
-    div.className = "track-card";
-    div.innerHTML = `
-      <h3>📅 ${exp.date}</h3>
-      <ul>
-        ${exp.entries.map(e => `<li>${e.description} - PHP ${e.amount.toFixed(2)}</li>`).join("")}
-      </ul>
-      <strong>Total: PHP ${exp.total.toFixed(2)}</strong>
+  // Add more expense fields
+  addMoreBtn.addEventListener("click", () => {
+    const newRow = document.createElement("div");
+    newRow.classList.add("expense-row");
+    newRow.innerHTML = `
+      <input type="text" class="description" placeholder="Description" required />
+      <input type="number" class="amount" placeholder="Amount" required />
     `;
-    list.appendChild(div);
+    document.getElementById("expense-fields").appendChild(newRow);
   });
-}
 
-// Filter logic
-document.getElementById("filterBtn").addEventListener("click", () => {
-  const year = yearFilter.value;
-  const month = monthFilter.value.padStart(2, "0");
-  const day = dayFilter.value.padStart(2, "0");
+  // Save expenses
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
 
-  if (!year || !month || !day) {
-    alert("Please select complete filter date.");
-    return;
+    const selectedDate = dateInput.value;
+    if (!selectedDate) {
+      alert("Please select a date.");
+      return;
+    }
+
+    const rows = document.querySelectorAll(".expense-row");
+    const entries = [];
+
+    let total = 0;
+
+    rows.forEach(row => {
+      const description = row.querySelector(".description").value.trim();
+      const amount = parseFloat(row.querySelector(".amount").value);
+
+      if (description && !isNaN(amount)) {
+        entries.push({ description, amount });
+        total += amount;
+      }
+    });
+
+    if (entries.length === 0) {
+      alert("Please enter at least one valid expense.");
+      return;
+    }
+
+    const data = JSON.parse(localStorage.getItem("expenses") || "{}");
+    data[selectedDate] = entries;
+    localStorage.setItem("expenses", JSON.stringify(data));
+
+    alert("Expenses saved!");
+    totalDisplay.textContent = total.toFixed(2);
+    loadTracks();
+  });
+
+  // Load and display saved expenses
+  function loadTracks(filter = {}) {
+    trackList.innerHTML = "";
+    const data = JSON.parse(localStorage.getItem("expenses") || "{}");
+
+    const filteredDates = Object.keys(data).filter(date => {
+      const [year, month, day] = date.split("-").map(Number);
+
+      if (filter.year && filter.year !== year) return false;
+      if (filter.month && filter.month !== month) return false;
+      if (filter.day && filter.day !== day) return false;
+      return true;
+    });
+
+    if (filteredDates.length === 0) {
+      trackList.innerHTML = "<p>No records found for the selected filter.</p>";
+      return;
+    }
+
+    filteredDates.forEach(date => {
+      const entry = document.createElement("div");
+      entry.classList.add("track-entry");
+      entry.innerHTML = `<h4>${date}</h4>`;
+      const ul = document.createElement("ul");
+      let total = 0;
+      data[date].forEach(item => {
+        const li = document.createElement("li");
+        li.textContent = `${item.description}: PHP ${item.amount.toFixed(2)}`;
+        ul.appendChild(li);
+        total += item.amount;
+      });
+      entry.appendChild(ul);
+      entry.innerHTML += `<strong>Total: PHP ${total.toFixed(2)}</strong>`;
+      trackList.appendChild(entry);
+    });
   }
 
-  const filterDate = `${year}-${month}-${day}`;
-  renderSavedExpenses(filterDate);
-});
+  // Filter button
+  filterBtn.addEventListener("click", () => {
+    const filter = {
+      year: parseInt(yearFilter.value),
+      month: parseInt(monthFilter.value),
+      day: parseInt(dayFilter.value)
+    };
 
-// Initial render
-renderSavedExpenses();
+    if (!filter.year || !filter.month || !filter.day) {
+      alert("Please select full date for filtering.");
+      return;
+    }
+
+    loadTracks(filter);
+  });
+
+  loadTracks(); // Load initial
+});
