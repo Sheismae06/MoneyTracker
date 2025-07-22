@@ -2,216 +2,164 @@ document.addEventListener("DOMContentLoaded", function () {
   const monthSelect = document.getElementById("month");
   const daySelect = document.getElementById("day");
   const yearSelect = document.getElementById("year");
-
   const cutoff1 = document.getElementById("cutoff1");
   const cutoff2 = document.getElementById("cutoff2");
-  const totalSalaryInput = document.getElementById("total-salary");
-
-  const expensesContainer = document.getElementById("expenses-container");
-  const addMoreBtn = document.getElementById("add-more");
-  const expensesTotal = document.getElementById("expenses-total");
-
-  const todayTotalSalary = document.getElementById("today-total-salary");
-  const todayTotalExpenses = document.getElementById("today-total-expenses");
+  const totalSalary = document.getElementById("totalSalary");
+  const expenseContainer = document.getElementById("expenseContainer");
+  const totalExpenses = document.getElementById("totalExpenses");
+  const computedSalary = document.getElementById("computedSalary");
+  const computedExpenses = document.getElementById("computedExpenses");
   const balance = document.getElementById("balance");
+  const saveBtn = document.getElementById("saveBtn");
+  const editBtn = document.getElementById("editBtn");
+  const deleteBtn = document.getElementById("deleteBtn");
 
-  const saveBtn = document.getElementById("save-btn");
-  const entryList = document.getElementById("entry-list");
-
-  // Initialize Chart
-  let ctx = document.getElementById("expenseChart").getContext("2d");
-  let expenseChart = new Chart(ctx, {
-    type: "pie",
-    data: {
-      labels: [],
-      datasets: [{
-        data: [],
-        backgroundColor: [],
-      }],
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: {
-          position: "bottom",
-        },
-      },
-    },
-  });
-
-  // Populate month, day, year
-  const months = [
-    "January", "February", "March", "April", "May", "June", "July",
-    "August", "September", "October", "November", "December",
-  ];
-  months.forEach((month, index) => {
-    const opt = document.createElement("option");
-    opt.value = index + 1;
-    opt.textContent = month;
-    monthSelect.appendChild(opt);
-  });
-
-  for (let d = 1; d <= 31; d++) {
-    const opt = document.createElement("option");
-    opt.value = d;
-    opt.textContent = d;
-    daySelect.appendChild(opt);
+  // Populate date options
+  for (let i = 1; i <= 12; i++) {
+    monthSelect.innerHTML += `<option value="${i}">${new Date(0, i - 1).toLocaleString('default', { month: 'long' })}</option>`;
+  }
+  for (let i = 1; i <= 31; i++) {
+    daySelect.innerHTML += `<option value="${i}">${i}</option>`;
+  }
+  for (let i = 2025; i <= 3000; i++) {
+    yearSelect.innerHTML += `<option value="${i}">${i}</option>`;
   }
 
-  for (let y = 2025; y <= 3000; y++) {
-    const opt = document.createElement("option");
-    opt.value = y;
-    opt.textContent = y;
-    yearSelect.appendChild(opt);
+  // Salary computation
+  function computeSalary() {
+    const c1 = parseFloat(cutoff1.value) || 0;
+    const c2 = parseFloat(cutoff2.value) || 0;
+    const total = c1 + c2;
+    totalSalary.value = total;
+    computedSalary.value = total;
+    updateBalance();
   }
 
-  function updateTotalSalary() {
-    const val1 = parseFloat(cutoff1.value) || 0;
-    const val2 = parseFloat(cutoff2.value) || 0;
-    totalSalaryInput.value = val1 + val2;
-    updateTodaySummary();
-  }
+  cutoff1.addEventListener("input", computeSalary);
+  cutoff2.addEventListener("input", computeSalary);
 
-  cutoff1.addEventListener("input", updateTotalSalary);
-  cutoff2.addEventListener("input", updateTotalSalary);
-
-  function addExpenseRow(desc = "", amt = "") {
-    const row = document.createElement("div");
-    row.classList.add("expense-row");
-    row.innerHTML = `
-      <input type="text" class="desc" placeholder="Description" value="${desc}">
-      <input type="number" class="amt" placeholder="Amount" value="${amt}">
-      <button class="remove-expense">Remove</button>
-    `;
-    expensesContainer.appendChild(row);
-
-    row.querySelector(".amt").addEventListener("input", updateExpensesTotal);
-    row.querySelector(".remove-expense").addEventListener("click", () => {
-      row.remove();
-      updateExpensesTotal();
-    });
-  }
-
-  addMoreBtn.addEventListener("click", () => {
-    addExpenseRow();
-  });
-
-  function updateExpensesTotal() {
-    const amounts = document.querySelectorAll(".amt");
+  // Expense tracking
+  function computeExpenses() {
     let total = 0;
-    amounts.forEach((amt) => {
-      total += parseFloat(amt.value) || 0;
+    document.querySelectorAll(".amount").forEach((el) => {
+      total += parseFloat(el.value) || 0;
     });
-    expensesTotal.textContent = total.toFixed(2);
-    updateTodaySummary();
+    totalExpenses.value = total;
+    computedExpenses.value = total;
+    updateBalance();
     updateChart();
   }
 
-  function updateTodaySummary() {
-    const salary = parseFloat(totalSalaryInput.value) || 0;
-    const expenses = parseFloat(expensesTotal.textContent) || 0;
-    todayTotalSalary.textContent = salary.toFixed(2);
-    todayTotalExpenses.textContent = expenses.toFixed(2);
-    balance.textContent = (salary - expenses).toFixed(2);
+  expenseContainer.addEventListener("input", computeExpenses);
+
+  document.getElementById("addExpense").addEventListener("click", () => {
+    const div = document.createElement("div");
+    div.className = "expenseRow";
+    div.innerHTML = `
+      <input type="text" class="description" placeholder="Description">
+      <input type="number" class="amount" placeholder="Amount">
+    `;
+    expenseContainer.appendChild(div);
+  });
+
+  function updateBalance() {
+    const total = parseFloat(totalSalary.value) || 0;
+    const expenses = parseFloat(totalExpenses.value) || 0;
+    balance.value = (total - expenses).toFixed(2);
   }
 
-  function updateChart() {
-    const descInputs = document.querySelectorAll(".desc");
-    const amtInputs = document.querySelectorAll(".amt");
-
-    const labels = [];
-    const data = [];
-    const colors = [];
-
-    for (let i = 0; i < descInputs.length; i++) {
-      const label = descInputs[i].value.trim();
-      const amount = parseFloat(amtInputs[i].value) || 0;
-      if (label && amount) {
-        labels.push(label);
-        data.push(amount);
-        colors.push(`hsl(${Math.random() * 360}, 70%, 60%)`);
-      }
-    }
-
-    expenseChart.data.labels = labels;
-    expenseChart.data.datasets[0].data = data;
-    expenseChart.data.datasets[0].backgroundColor = colors;
-    expenseChart.update();
-  }
-
-  function getSelectedDateKey() {
+  // Save / Edit / Delete functionality
+  function getCurrentDateKey() {
     return `${monthSelect.value}-${daySelect.value}-${yearSelect.value}`;
   }
 
-  function saveEntry() {
-    const dateKey = getSelectedDateKey();
-    const entry = {
+  saveBtn.addEventListener("click", () => {
+    const key = getCurrentDateKey();
+    const data = {
       cutoff1: cutoff1.value,
       cutoff2: cutoff2.value,
-      totalSalary: totalSalaryInput.value,
-      expenses: [],
+      expenses: Array.from(document.querySelectorAll(".expenseRow")).map((row) => ({
+        description: row.querySelector(".description").value,
+        amount: row.querySelector(".amount").value,
+      })),
     };
+    localStorage.setItem(key, JSON.stringify(data));
+    alert("Saved!");
+  });
 
-    document.querySelectorAll(".expense-row").forEach((row) => {
-      const desc = row.querySelector(".desc").value;
-      const amt = row.querySelector(".amt").value;
-      if (desc && amt) {
-        entry.expenses.push({ desc, amt });
+  editBtn.addEventListener("click", () => {
+    const key = getCurrentDateKey();
+    const saved = localStorage.getItem(key);
+    if (saved) {
+      const data = JSON.parse(saved);
+      cutoff1.value = data.cutoff1;
+      cutoff2.value = data.cutoff2;
+      computeSalary();
+      expenseContainer.innerHTML = "";
+      data.expenses.forEach((exp) => {
+        const div = document.createElement("div");
+        div.className = "expenseRow";
+        div.innerHTML = `
+          <input type="text" class="description" value="${exp.description}">
+          <input type="number" class="amount" value="${exp.amount}">
+        `;
+        expenseContainer.appendChild(div);
+      });
+      computeExpenses();
+    } else {
+      alert("No data found.");
+    }
+  });
+
+  deleteBtn.addEventListener("click", () => {
+    const key = getCurrentDateKey();
+    localStorage.removeItem(key);
+    alert("Deleted!");
+  });
+
+  // Chart rendering
+  let chart;
+  function updateChart() {
+    const labels = [];
+    const data = [];
+
+    document.querySelectorAll(".expenseRow").forEach((row) => {
+      const desc = row.querySelector(".description").value || "Unnamed";
+      const amt = parseFloat(row.querySelector(".amount").value) || 0;
+      if (amt > 0) {
+        labels.push(desc);
+        data.push(amt);
       }
     });
 
-    localStorage.setItem(dateKey, JSON.stringify(entry));
-    renderEntries();
-  }
-
-  function renderEntries() {
-    entryList.innerHTML = "";
-    for (let i = 0; i < localStorage.length; i++) {
-      const dateKey = localStorage.key(i);
-      const entry = JSON.parse(localStorage.getItem(dateKey));
-      const div = document.createElement("div");
-      div.innerHTML = `
-        <strong>${dateKey}</strong>
-        <button class="edit" data-key="${dateKey}">Edit</button>
-        <button class="delete" data-key="${dateKey}">Delete</button>
-      `;
-      entryList.appendChild(div);
-    }
-
-    document.querySelectorAll(".edit").forEach((btn) => {
-      btn.addEventListener("click", () => loadEntry(btn.dataset.key));
+    if (chart) chart.destroy();
+    const ctx = document.getElementById("expenseChart").getContext("2d");
+    chart = new Chart(ctx, {
+      type: "pie",
+      data: {
+        labels,
+        datasets: [
+          {
+            data,
+            backgroundColor: [
+              "#ff6384",
+              "#36a2eb",
+              "#ffcd56",
+              "#4bc0c0",
+              "#9966ff",
+              "#ff9f40"
+            ],
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: "bottom",
+          },
+        },
+      },
     });
-
-    document.querySelectorAll(".delete").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        localStorage.removeItem(btn.dataset.key);
-        renderEntries();
-      });
-    });
   }
-
-  function loadEntry(dateKey) {
-    const entry = JSON.parse(localStorage.getItem(dateKey));
-    if (!entry) return;
-
-    const [month, day, year] = dateKey.split("-");
-    monthSelect.value = month;
-    daySelect.value = day;
-    yearSelect.value = year;
-
-    cutoff1.value = entry.cutoff1;
-    cutoff2.value = entry.cutoff2;
-    totalSalaryInput.value = entry.totalSalary;
-
-    expensesContainer.innerHTML = "";
-    entry.expenses.forEach((item) => {
-      addExpenseRow(item.desc, item.amt);
-    });
-
-    updateTotalSalary();
-    updateExpensesTotal();
-  }
-
-  saveBtn.addEventListener("click", saveEntry);
-  renderEntries();
 });
