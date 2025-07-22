@@ -1,125 +1,80 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: 'Segoe UI', sans-serif;
-}
-
 body {
-  background-color: #111;
-  color: #f9f9f9;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #f9f9f9;
+  color: #333;
+  margin: 0;
   padding: 20px;
 }
 
-nav {
-  background-color: #222;
-  color: gold;
-  padding: 15px 20px;
-  font-size: 1.5rem;
-  font-weight: bold;
-  border-radius: 10px;
+h1 {
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
+  color: #2c3e50;
 }
 
-main {
+.container {
   max-width: 800px;
-  margin: auto;
+  margin: 0 auto;
 }
 
-section {
-  background-color: #1b1b1b;
-  padding: 20px;
-  margin-bottom: 20px;
-  border-radius: 15px;
-  box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
-}
-
-h2 {
-  color: gold;
-  margin-bottom: 10px;
-  text-align: center;
-}
-
-.salary-inputs label,
-.expense-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
+select,
 input[type="number"],
 input[type="text"],
-select {
-  padding: 8px;
-  border: none;
-  border-radius: 8px;
-  outline: none;
-  width: 60%;
-  background-color: #333;
-  color: white;
-}
-
-input[type="number"]::placeholder,
-input[type="text"]::placeholder {
-  color: #aaa;
-}
-
-.date-selectors {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-#add-expense {
-  margin-top: 10px;
+button {
+  padding: 10px;
+  margin: 5px;
   width: 100%;
+  box-sizing: border-box;
+}
+
+select,
+input {
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
 
 button {
-  padding: 10px;
-  background-color: #333;
+  background-color: #2c3e50;
   color: white;
-  border: 2px solid gold;
-  border-radius: 10px;
+  border: none;
+  border-radius: 4px;
   cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 button:hover {
-  background-color: gold;
-  color: black;
-  transform: scale(1.05);
+  background-color: #34495e;
 }
 
-button:active {
-  transform: scale(0.95);
+#expenses-container {
+  margin-bottom: 20px;
 }
 
-.save-section {
+.expense-item {
   display: flex;
-  justify-content: space-between;
   gap: 10px;
-  flex-wrap: wrap;
+  margin-bottom: 5px;
 }
 
-.total-salary,
-.totals {
-  font-size: 1.2rem;
+.expense-item input {
+  flex: 1;
+}
+
+.total-summary {
+  margin-top: 20px;
   font-weight: bold;
-  margin-top: 10px;
-  text-align: center;
 }
 
-canvas {
-  display: block;
-  margin: 20px auto;
-}
-
-footer {
-  text-align: center;
+.chart-container {
   margin-top: 30px;
-  font-size: 0.8rem;
-  color: #888;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  justify-content: center;
+}
+
+.actions button {
+  flex: 1;
 }
