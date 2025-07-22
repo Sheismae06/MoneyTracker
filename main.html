@@ -30,14 +30,15 @@
     </form>
 
     <section id="saved-tracks">
-  <h2>📌 Saved Expenses</h2>
-  <div class="filter-bar">
-    <select id="yearFilter"></select>
-    <select id="monthFilter"></select>
-    <select id="dayFilter"></select>
-    <button id="filterBtn">🔍 Filter</button>
-  </div>
-  <div id="track-list"></div>
+      <h2>📌 Saved Expenses</h2>
+      <div class="filter-bar">
+        <label>Start Date:</label>
+        <input type="date" id="startDate" />
+        <label>End Date:</label>
+        <input type="date" id="endDate" />
+        <button id="filterBtn">🔍 Filter</button>
+      </div>
+      <div id="track-list"></div>
     </section>
   </main>
 
