@@ -2,118 +2,81 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dark Candy Budget Tracker</title>
+  <title>Money Tracker</title>
   <link rel="stylesheet" href="style.css" />
+  <script defer src="script.js"></script>
 </head>
 <body>
   <nav class="navbar">
-    <h1>Dark Candy Budget Tracker</h1>
-    <div id="music-toggle" class="music-icon" title="Toggle Music">
-      <!-- SVG icon added in JS -->
+    <h1 class="logo">Money Tracker</h1>
+  </nav>  <main class="container">
+    <section class="salary-section">
+      <h2>Salary Summary</h2>
+      <div class="salary-inputs">
+        <label>Cut-off 1 Salary: <input type="number" id="cutoff1" /></label>
+        <label>Cut-off 2 Salary: <input type="number" id="cutoff2" /></label>
+        <div class="total-salary">Total: <span id="totalSalary">₱0.00</span></div>
+      </div>
+    </section><section class="date-select">
+  <label for="month">Month:</label>
+  <select id="month">
+    <option disabled selected>Select Month</option>
+    <option>January</option>
+    <option>February</option>
+    <option>March</option>
+    <option>April</option>
+    <option>May</option>
+    <option>June</option>
+    <option>July</option>
+    <option>August</option>
+    <option>September</option>
+    <option>October</option>
+    <option>November</option>
+    <option>December</option>
+  </select>
+
+  <label for="year">Year:</label>
+  <select id="year">
+    <option disabled selected>Select Year</option>
+    <!-- Years 2025 to 2050 -->
+    <script>
+      for(let y = 2025; y <= 2050; y++) {
+        document.write(`<option>${y}</option>`);
+      }
+    </script>
+  </select>
+
+  <label for="day">Day:</label>
+  <select id="day">
+    <option disabled selected>Select Day</option>
+    <script>
+      for(let d = 1; d <= 31; d++) {
+        document.write(`<option>${d}</option>`);
+      }
+    </script>
+  </select>
+</section>
+
+<section class="expenses">
+  <h2>Daily Expense</h2>
+  <div id="expenseInputs">
+    <div class="expense-row">
+      <input type="text" placeholder="Category (e.g. Fare)" class="expense-label" />
+      <input type="number" placeholder="Amount" class="expense-amount" />
     </div>
-  </nav>  <main>
-    <section class="selector">
-      <label for="month">Select Month:</label>
-      <select id="month">
-        <option value="july">July</option>
-        <option value="august">August</option>
-        <!-- Add more months as needed -->
-      </select>
-      <button onclick="saveData()">Save Month</button>
-    </section><section class="salary-section">
-  <h2>Monthly Salary and Expenses</h2>
-  <label for="salary">Salary this Cutoff:</label>
-  <input type="number" id="salary" placeholder="₱0.00" />
-  <label for="expenses">Total Expenses:</label>
-  <input type="number" id="expenses" placeholder="₱0.00" />
+  </div>
+  <button onclick="addExpenseRow()">+ Add More</button>
+  <div class="day-total">Total: <span id="dayTotal">₱0.00</span></div>
+  <button onclick="saveDayExpense()">Save</button>
 </section>
 
-<section class="income-section">
-  <h2>Side Income / Business</h2>
-  <div class="income-row">
-    <label>Food</label>
-    <input type="number" placeholder="Capital" />
-    <input type="number" placeholder="Profit" />
-  </div>
-  <div class="income-row">
-    <label>Perfume</label>
-    <input type="number" placeholder="Capital" />
-    <input type="number" placeholder="Profit" />
-  </div>
-  <div class="income-row">
-    <label>Ukay</label>
-    <input type="number" placeholder="Capital" />
-    <input type="number" placeholder="Profit" />
-  </div>
+<section class="chart">
+  <h2>Spending Graph</h2>
+  <canvas id="expenseChart" height="200"></canvas>
 </section>
 
-<section class="weekly-section">
-  <h2>Weekly Tracker</h2>
-  <div class="week-row">
-    <label>Week 1:</label><input type="number" />
-  </div>
-  <div class="week-row">
-    <label>Week 2:</label><input type="number" />
-  </div>
-  <div class="week-row">
-    <label>Week 3:</label><input type="number" />
-  </div>
-  <div class="week-row">
-    <label>Week 4:</label><input type="number" />
-  </div>
-</section>
-
-<section class="debt-section">
-  <h2>Debt Tracker</h2>
-  <div class="debt-row">
-    <label>Gcash:</label>
-    <input type="number" placeholder="Total Debt" />
-    <input type="number" placeholder="Paid This Month" />
-  </div>
-  <div class="debt-row">
-    <label>UD Loans:</label>
-    <input type="number" placeholder="Total Debt" />
-    <input type="number" placeholder="Paid This Month" />
-  </div>
-  <div class="debt-row">
-    <label>Maya:</label>
-    <input type="number" placeholder="Total Debt" />
-    <input type="number" placeholder="Paid This Month" />
-  </div>
-  <div class="debt-row">
-    <label>Billease:</label>
-    <input type="number" placeholder="Total Debt" />
-    <input type="number" placeholder="Paid This Month" />
-  </div>
-  <div class="debt-row">
-    <label>Joecelle:</label>
-    <input type="number" placeholder="Total Debt" />
-    <input type="number" placeholder="Paid This Month" />
-  </div>
-  <div class="debt-row">
-    <label>Girlie:</label>
-    <input type="number" placeholder="Total Debt" />
-    <input type="number" placeholder="Paid This Month" />
-  </div>
-  <div class="debt-row">
-    <label>Tiktok PayLater:</label>
-    <input type="number" placeholder="Total Debt" />
-    <input type="number" placeholder="Paid This Month" />
-  </div>
-  <div class="debt-summary">
-    <p><strong>Total Debt:</strong> ₱<span id="total-debt">0.00</span></p>
-    <p><strong>Current Balance:</strong> ₱<span id="balance-debt">0.00</span></p>
-  </div>
-</section>
-
-<section class="visual-section">
-  <h2>Summary Chart</h2>
-  <canvas id="summaryChart"></canvas>
-</section>
-
-<button onclick="exportData()">Export Data</button>
-
-  </main><audio id="bg-music" src="https://youtu.be/qBeX-iF_SpM?si=2Ohr_qvAAV-LOzHh" type="audio/mp3"></audio>
-
-  <script src="script.js"></script></body>
+  </main>  <footer>
+    <small>Owned by Mae</small>
+  </footer>
+</body>
 </html>
