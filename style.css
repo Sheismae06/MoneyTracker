@@ -1,0 +1,84 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dark Candy Budget Tracker</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <nav>
+    <h1>Dark Candy Tracker</h1>
+    <select id="monthSelector"></select>
+    <button id="saveMonth">💾 Save Month</button>
+    <svg id="musicIcon" class="music-icon" viewBox="0 0 24 24">
+      <path d="M8 3v13.55A4 4 0 1 0 10 20V7h4V3H8z" fill="white" />
+    </svg>
+  </nav>  <main>
+    <section class="section">
+      <h2>💡 Monthly Salary</h2>
+      <input type="number" id="salary" placeholder="Enter salary for selected month" />
+    </section><section class="section">
+  <h2>📋 Bills</h2>
+  <div class="input-group"><label>Electricity</label><input type="number" id="electricity"></div>
+  <div class="input-group"><label>Load</label><input type="number" id="load"></div>
+  <div class="input-group"><label>Water</label><input type="number" id="water"></div>
+  <div class="input-group"><label>Rent</label><input type="number" id="rent"></div>
+</section>
+
+<section class="section">
+  <h2>💖 Savings</h2>
+  <div class="input-group"><label>Emergency</label><input type="number" id="emergency"></div>
+  <div class="input-group"><label>Wants</label><input type="number" id="wants"></div>
+  <div class="input-group"><label>General Savings</label><input type="number" id="save"></div>
+</section>
+
+<section class="section">
+  <h2>🍱 Daily</h2>
+  <div class="input-group"><label>Fare</label><input type="number" id="fare"></div>
+  <div class="input-group"><label>Food & Drinks</label><input type="number" id="food"></div>
+</section>
+
+<section class="section">
+  <h2>🧼 Monthly Supplies</h2>
+  <div class="supplies"></div>
+</section>
+
+<section class="section">
+  <h2>👪 Responsibilities</h2>
+  <div class="input-group"><label>Ate Edna</label><input type="number" id="ateedna"></div>
+  <div class="input-group"><label>Mom</label><input type="number" id="mom"></div>
+  <div class="input-group"><label>Dad</label><input type="number" id="dad"></div>
+</section>
+
+<section class="section">
+  <h2>🧃 Weekly</h2>
+  <div class="input-group"><label>Mark Allowance</label><input type="number" id="mark"></div>
+</section>
+
+<section class="section">
+  <h2>💳 Debts</h2>
+  <div id="debtContainer"></div>
+  <div class="total-debt">
+    <p><strong>Total Paid This Month:</strong> <span id="totalDebtPaid">₱0</span></p>
+    <p><strong>Total Remaining Balance:</strong> <span id="totalDebtBalance">₱0</span></p>
+  </div>
+</section>
+
+<section class="section">
+  <h2>📦 Side Income & Business</h2>
+  <div id="incomeContainer"></div>
+</section>
+
+<section class="section">
+  <h2>📊 Visual Summary</h2>
+  <canvas id="summaryChart"></canvas>
+</section>
+
+<section class="section">
+  <button id="exportData">📤 Export as JSON</button>
+</section>
+
+  </main><audio id="bgMusic" src="https://www.youtube.com/embed/qBeX-iF_SpM?autoplay=1" type="audio/mp3"></audio>
+
+  <script src="script.js"></script></body>
+</html>
