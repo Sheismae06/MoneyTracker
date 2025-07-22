@@ -1,27 +1,28 @@
-// 🎵 Music Toggle
-const musicToggle = document.getElementById("musicToggle");
-const musicIcon = document.getElementById("musicIcon");
-const bgMusic = document.getElementById("bg-music");
+// Music toggle
+const musicToggle = document.getElementById('musicToggle');
+const musicIcon = document.getElementById('musicIcon');
+const bgMusic = document.getElementById('bg-music');
+let isMusicPlaying = false;
 
-let isPlaying = false;
-
-musicToggle.addEventListener("click", () => {
-  if (isPlaying) {
-    bgMusic.pause();
-    musicIcon.style.opacity = "0.5";
-  } else {
+musicToggle.addEventListener('click', () => {
+  isMusicPlaying = !isMusicPlaying;
+  if (isMusicPlaying) {
     bgMusic.play();
-    musicIcon.style.opacity = "1";
+    musicIcon.style.opacity = '1';
+    musicIcon.style.filter = 'drop-shadow(0 0 5px gold)';
+  } else {
+    bgMusic.pause();
+    musicIcon.style.opacity = '0.7';
+    musicIcon.style.filter = 'none';
   }
-  isPlaying = !isPlaying;
 });
 
-// 💾 Save Entry
+// Save Entry
 function saveEntry() {
-  const date = document.getElementById("entry-date").value;
-  const amount = parseFloat(document.getElementById("entry-amount").value);
-  const type = document.getElementById("entry-type").value;
-  const note = document.getElementById("entry-note").value;
+  const date = document.getElementById('entry-date').value;
+  const amount = parseFloat(document.getElementById('entry-amount').value);
+  const type = document.getElementById('entry-type').value;
+  const note = document.getElementById('entry-note').value;
 
   if (!date || isNaN(amount)) {
     alert("Please enter a valid date and amount.");
@@ -29,119 +30,74 @@ function saveEntry() {
   }
 
   const entry = { date, amount, type, note };
-  let entries = JSON.parse(localStorage.getItem("entries")) || [];
+  let entries = JSON.parse(localStorage.getItem('entries')) || [];
   entries.push(entry);
-  localStorage.setItem("entries", JSON.stringify(entries));
+  localStorage.setItem('entries', JSON.stringify(entries));
 
   renderEntries();
   updateTotals();
-  renderChart();
   clearForm();
 }
 
-// 🧹 Clear Form
-function clearForm() {
-  document.getElementById("entry-date").value = "";
-  document.getElementById("entry-amount").value = "";
-  document.getElementById("entry-type").value = "income";
-  document.getElementById("entry-note").value = "";
-}
-
-// 🧾 Render Entries Table
+// Render Entries
 function renderEntries() {
-  const tbody = document.querySelector("#entries-table tbody");
-  tbody.innerHTML = "";
-
-  const entries = JSON.parse(localStorage.getItem("entries")) || [];
+  const entries = JSON.parse(localStorage.getItem('entries')) || [];
+  const tbody = document.querySelector('#entries-table tbody');
+  tbody.innerHTML = '';
 
   entries.forEach((entry, index) => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
+    const row = document.createElement('tr');
+    row.innerHTML = `
       <td>${entry.date}</td>
       <td>₱${entry.amount.toFixed(2)}</td>
       <td class="${entry.type}">${entry.type}</td>
-      <td>${entry.note || ""}</td>
+      <td>${entry.note}</td>
       <td><button onclick="deleteEntry(${index})">Delete</button></td>
     `;
-    tbody.appendChild(tr);
+    tbody.appendChild(row);
   });
 }
 
-// ❌ Delete Entry
+// Delete Entry
 function deleteEntry(index) {
-  let entries = JSON.parse(localStorage.getItem("entries")) || [];
+  let entries = JSON.parse(localStorage.getItem('entries')) || [];
   entries.splice(index, 1);
-  localStorage.setItem("entries", JSON.stringify(entries));
-
+  localStorage.setItem('entries', JSON.stringify(entries));
   renderEntries();
   updateTotals();
-  renderChart();
 }
 
-// 📊 Update Totals
-function updateTotals() {
-  const entries = JSON.parse(localStorage.getItem("entries")) || [];
+// Clear form
+function clearForm() {
+  document.getElementById('entry-date').value = '';
+  document.getElementById('entry-amount').value = '';
+  document.getElementById('entry-type').value = 'income';
+  document.getElementById('entry-note').value = '';
+}
 
-  let income = 0;
-  let expense = 0;
+// Update Totals
+function updateTotals() {
+  const entries = JSON.parse(localStorage.getItem('entries')) || [];
+  let income = 0, expense = 0;
 
   entries.forEach(entry => {
-    if (entry.type === "income") {
+    if (entry.type === 'income') {
       income += entry.amount;
     } else {
       expense += entry.amount;
     }
   });
 
-  const balance = income - expense;
-
-  document.getElementById("totals").innerHTML = `
-    <p><strong>Income:</strong> ₱${income.toFixed(2)}</p>
-    <p><strong>Expenses:</strong> ₱${expense.toFixed(2)}</p>
-    <p><strong>Balance:</strong> ₱${balance.toFixed(2)}</p>
+  const total = income - expense;
+  document.getElementById('totals').innerHTML = `
+    <p>Income: <span class="green">₱${income.toFixed(2)}</span></p>
+    <p>Expenses: <span class="red">₱${expense.toFixed(2)}</span></p>
+    <p>Balance: <strong>₱${total.toFixed(2)}</strong></p>
   `;
 }
 
-// 📈 Render Chart
-function renderChart() {
-  const ctx = document.getElementById("summary-chart").getContext("2d");
-
-  const entries = JSON.parse(localStorage.getItem("entries")) || [];
-  let income = 0;
-  let expense = 0;
-
-  entries.forEach(entry => {
-    if (entry.type === "income") income += entry.amount;
-    else expense += entry.amount;
-  });
-
-  if (window.myChart) {
-    window.myChart.destroy();
-  }
-
-  window.myChart = new Chart(ctx, {
-    type: "doughnut",
-    data: {
-      labels: ["Income", "Expenses"],
-      datasets: [{
-        data: [income, expense],
-        backgroundColor: ["#4caf50", "#f44336"]
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: {
-          position: "bottom"
-        }
-      }
-    }
-  });
-}
-
-// 🚀 Init
-window.addEventListener("DOMContentLoaded", () => {
+// Initialize
+window.addEventListener('DOMContentLoaded', () => {
   renderEntries();
   updateTotals();
-  renderChart();
 });
