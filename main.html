@@ -1,0 +1,230 @@
+<!DOCTYPE html><html lang="en"><head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Money Tracker</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background-color: #f9f9f9;
+      color: #333;
+    }nav {
+  background-color: #222;
+  color: white;
+  padding: 10px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 500;
+}
+
+.container {
+  padding: 20px;
+  max-width: 800px;
+  margin: auto;
+}
+
+h1.title {
+  text-align: center;
+  font-size: 1.8rem;
+  margin-bottom: 20px;
+  color: #a98600;
+}
+
+label {
+  display: block;
+  margin-top: 10px;
+  font-weight: 500;
+}
+
+input, select {
+  width: 100%;
+  padding: 8px;
+  margin-top: 5px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+.row {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.row input {
+  flex: 1;
+}
+
+button {
+  margin-top: 10px;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  background-color: #a98600;
+  color: white;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.summary {
+  margin-top: 20px;
+  background: #fff;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+canvas {
+  max-width: 100%;
+  margin-top: 20px;
+}
+
+.footer {
+  text-align: center;
+  font-size: 0.8rem;
+  color: #777;
+  margin-top: 30px;
+}
+
+  </style>
+</head><body>
+  <nav>
+    <span>Menu</span>
+    <span>Settings</span>
+  </nav>  <div class="container">
+    <h1 class="title">Money Tracker</h1><label>Cutoff 1</label>
+<input type="number" id="cutoff1" oninput="calculateTotalSalary()" />
+
+<label>Cutoff 2</label>
+<input type="number" id="cutoff2" oninput="calculateTotalSalary()" />
+
+<label>Total Salary</label>
+<input type="number" id="totalSalary" readonly />
+
+<hr>
+
+<label>Select Date</label>
+<div class="row">
+  <select id="year"></select>
+  <select id="month"></select>
+  <select id="day"></select>
+</div>
+
+<h3 style="margin-top: 20px;">Daily Expenses</h3>
+<div id="expenses"></div>
+<button onclick="addExpenseRow()">Add More</button>
+
+<div class="summary">
+  <p>Total Expense: <strong id="totalExpense">0</strong></p>
+  <p>Balance: <strong id="balance">0</strong></p>
+</div>
+
+<canvas id="pieChart"></canvas>
+
+<button onclick="saveDay()">Save</button>
+<button onclick="loadDay()">Edit</button>
+<button onclick="deleteDay()">Delete</button>
+
+<div class="footer">Owned by Mae</div>
+
+  </div>  <script>
+    // Populate year/month/day
+    const yearSelect = document.getElementById("year");
+    const monthSelect = document.getElementById("month");
+    const daySelect = document.getElementById("day");
+    for (let y = 2025; y <= 3000; y++) {
+      yearSelect.innerHTML += `<option>${y}</option>`;
+    }
+    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    months.forEach((m, i) => monthSelect.innerHTML += `<option value='${i}'>${m}</option>`);
+    for (let d = 1; d <= 31; d++) {
+      daySelect.innerHTML += `<option>${d}</option>`;
+    }
+
+    function calculateTotalSalary() {
+      const c1 = parseFloat(document.getElementById('cutoff1').value) || 0;
+      const c2 = parseFloat(document.getElementById('cutoff2').value) || 0;
+      const total = c1 + c2;
+      document.getElementById('totalSalary').value = total;
+      calculateSummary();
+    }
+
+    function addExpenseRow(desc = '', amt = '') {
+      const div = document.createElement('div');
+      div.className = 'row';
+      div.innerHTML = `<input type='text' placeholder='Description' value='${desc}' oninput='calculateSummary()'>
+                       <input type='number' placeholder='Amount' value='${amt}' oninput='calculateSummary()'>`;
+      document.getElementById('expenses').appendChild(div);
+    }
+
+    function calculateSummary() {
+      const inputs = document.querySelectorAll('#expenses .row input[type=number]');
+      let totalExp = 0;
+      inputs.forEach(i => totalExp += parseFloat(i.value) || 0);
+      document.getElementById('totalExpense').innerText = totalExp;
+      const salary = parseFloat(document.getElementById('totalSalary').value) || 0;
+      document.getElementById('balance').innerText = salary - totalExp;
+      updateChart(totalExp, salary - totalExp);
+    }
+
+    let pieChart = new Chart(document.getElementById('pieChart'), {
+      type: 'pie',
+      data: {
+        labels: ['Expenses', 'Balance'],
+        datasets: [{
+          data: [0, 0],
+          backgroundColor: ['#ff6384', '#36a2eb']
+        }]
+      }
+    });
+
+    function updateChart(exp, bal) {
+      pieChart.data.datasets[0].data = [exp, bal];
+      pieChart.update();
+    }
+
+    function getKey() {
+      return `${yearSelect.value}-${monthSelect.value}-${daySelect.value}`;
+    }
+
+    function saveDay() {
+      const key = getKey();
+      const expenses = [];
+      document.querySelectorAll('#expenses .row').forEach(row => {
+        const [desc, amt] = row.querySelectorAll('input');
+        expenses.push({ desc: desc.value, amt: amt.value });
+      });
+      const data = {
+        cutoff1: document.getElementById('cutoff1').value,
+        cutoff2: document.getElementById('cutoff2').value,
+        expenses
+      };
+      localStorage.setItem(key, JSON.stringify(data));
+      alert('Saved!');
+    }
+
+    function loadDay() {
+      const key = getKey();
+      const data = JSON.parse(localStorage.getItem(key));
+      if (!data) return alert('No data found');
+      document.getElementById('cutoff1').value = data.cutoff1;
+      document.getElementById('cutoff2').value = data.cutoff2;
+      calculateTotalSalary();
+      document.getElementById('expenses').innerHTML = '';
+      data.expenses.forEach(e => addExpenseRow(e.desc, e.amt));
+      calculateSummary();
+    }
+
+    function deleteDay() {
+      const key = getKey();
+      if (confirm('Delete this day's data?')) {
+        localStorage.removeItem(key);
+        alert('Deleted');
+      }
+    }
+
+    // Initialize with one row
+    addExpenseRow();
+  </script></body></html>
