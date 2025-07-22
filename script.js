@@ -1,111 +1,131 @@
-// Elements
-const salaryInputs = document.querySelectorAll('.salary-input');
-const totalSalaryDisplay = document.getElementById('total-salary');
-const expenseName = document.getElementById('expense-name');
-const expenseAmount = document.getElementById('expense-amount');
-const addExpenseBtn = document.getElementById('add-expense');
-const expenseList = document.getElementById('expense-list');
-const totalExpensesDisplay = document.getElementById('total-expenses');
-const remainingBalanceDisplay = document.getElementById('remaining-balance');
-const saveAmount = document.getElementById('save-amount');
-const saveBtn = document.getElementById('save-btn');
-const goalBtn = document.getElementById('goal-btn');
+// Date Selects
+function populateSelects() {
+  const months = [...Array(12)].map((_, i) => new Option(new Date(0, i).toLocaleString('default', { month: 'long' }), i + 1));
+  const days = [...Array(31)].map((_, i) => new Option(`Day ${i + 1}`, i + 1));
+  const years = [...Array(976)].map((_, i) => new Option(2025 + i, 2025 + i));
 
-let totalSalary = 0;
-let totalExpenses = 0;
-let saved = 0;
+  document.getElementById('month').append(...months);
+  document.getElementById('day').append(...days);
+  document.getElementById('year').append(...years);
+}
+populateSelects();
 
-function calculateTotalSalary() {
-  totalSalary = 0;
-  salaryInputs.forEach(input => {
-    totalSalary += Number(input.value || 0);
-  });
-  totalSalaryDisplay.textContent = `₱ ${totalSalary.toLocaleString()}`;
+// Salary Calculation
+function updateTotalSalary() {
+  const c1 = parseFloat(document.getElementById('cutoff1').value) || 0;
+  const c2 = parseFloat(document.getElementById('cutoff2').value) || 0;
+  document.getElementById('totalSalary').value = c1 + c2;
   updateBalance();
 }
 
-function addExpense() {
-  const name = expenseName.value.trim();
-  const amount = parseFloat(expenseAmount.value);
-
-  if (!name || isNaN(amount) || amount <= 0) return;
-
-  const row = document.createElement('div');
-  row.classList.add('expense-row');
-  row.innerHTML = `
-    <span>${name}</span>
-    <span>₱ ${amount.toLocaleString()}</span>
+// Expenses
+function addExpenseItem(desc = '', amt = '') {
+  const container = document.getElementById('expenses-container');
+  const div = document.createElement('div');
+  div.className = 'expense-item';
+  div.innerHTML = `
+    <input type="text" placeholder="Description" class="desc" value="${desc}">
+    <input type="number" placeholder="Amount" class="amt" value="${amt}">
   `;
-  expenseList.appendChild(row);
-
-  totalExpenses += amount;
-  updateTotals();
-
-  // Reset
-  expenseName.value = '';
-  expenseAmount.value = '';
+  container.appendChild(div);
+  updateTotalExpenses();
 }
 
-function updateTotals() {
-  totalExpensesDisplay.textContent = `₱ ${totalExpenses.toLocaleString()}`;
+function updateTotalExpenses() {
+  const amounts = [...document.querySelectorAll('.amt')].map(input => parseFloat(input.value) || 0);
+  const total = amounts.reduce((a, b) => a + b, 0);
+  document.getElementById('totalExpenses').textContent = total.toFixed(2);
   updateBalance();
+  updateChart();
 }
 
+// Balance
 function updateBalance() {
-  const balance = totalSalary - totalExpenses - saved;
-  remainingBalanceDisplay.textContent = `₱ ${balance.toLocaleString()}`;
-  renderChart();
+  const salary = parseFloat(document.getElementById('totalSalary').value) || 0;
+  const expenses = parseFloat(document.getElementById('totalExpenses').textContent) || 0;
+  document.getElementById('balance').textContent = (salary - expenses).toFixed(2);
 }
 
-function saveMoney() {
-  const amount = parseFloat(saveAmount.value);
-  if (isNaN(amount) || amount <= 0 || amount > totalSalary - totalExpenses - saved) return;
+// Chart
+let chart;
+function updateChart() {
+  const ctx = document.getElementById('myChart').getContext('2d');
+  const descs = [...document.querySelectorAll('.desc')].map(i => i.value);
+  const amts = [...document.querySelectorAll('.amt')].map(i => parseFloat(i.value) || 0);
 
-  saved += amount;
-  saveAmount.value = '';
-  updateBalance();
-}
-
-function renderChart() {
-  if (!window.myChart) {
-    const ctx = document.getElementById('expense-chart').getContext('2d');
-    window.myChart = new Chart(ctx, {
-      type: 'pie',
-      data: {
-        labels: ['Expenses', 'Savings', 'Remaining'],
-        datasets: [{
-          label: 'Budget Breakdown',
-          data: [totalExpenses, saved, totalSalary - totalExpenses - saved],
-          backgroundColor: ['#e63946', '#f1c40f', '#2ecc71'],
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: {
-            labels: { color: 'white' }
-          }
-        }
+  if (chart) chart.destroy();
+  chart = new Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels: descs,
+      datasets: [{
+        data: amts,
+        backgroundColor: amts.map((_, i) => `hsl(${i * 50}, 70%, 60%)`)
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'bottom' }
       }
-    });
-  } else {
-    window.myChart.data.datasets[0].data = [totalExpenses, saved, totalSalary - totalExpenses - saved];
-    window.myChart.update();
-  }
+    }
+  });
 }
 
-// Event listeners
-salaryInputs.forEach(input => input.addEventListener('input', calculateTotalSalary));
-addExpenseBtn.addEventListener('click', addExpense);
-saveBtn.addEventListener('click', saveMoney);
+// Save/Load/Delete
+function saveData() {
+  const key = getSelectedDateKey();
+  const data = {
+    cutoff1: document.getElementById('cutoff1').value,
+    cutoff2: document.getElementById('cutoff2').value,
+    totalSalary: document.getElementById('totalSalary').value,
+    expenses: [...document.querySelectorAll('.expense-item')].map(div => ({
+      desc: div.querySelector('.desc').value,
+      amt: div.querySelector('.amt').value
+    }))
+  };
+  localStorage.setItem(key, JSON.stringify(data));
+  alert('Data saved for selected date!');
+}
 
-// Optional: goal animation
-goalBtn.addEventListener('click', () => {
-  goalBtn.style.backgroundColor = 'gold';
-  setTimeout(() => {
-    goalBtn.style.backgroundColor = '#333';
-  }, 200);
-});
+function loadData() {
+  const key = getSelectedDateKey();
+  const data = JSON.parse(localStorage.getItem(key));
+  if (!data) return alert('No saved data for this date.');
 
-// Initialize
-calculateTotalSalary();
+  document.getElementById('cutoff1').value = data.cutoff1;
+  document.getElementById('cutoff2').value = data.cutoff2;
+  document.getElementById('totalSalary').value = data.totalSalary;
+
+  document.getElementById('expenses-container').innerHTML = '';
+  data.expenses.forEach(item => addExpenseItem(item.desc, item.amt));
+
+  updateTotalSalary();
+  updateTotalExpenses();
+}
+
+function deleteData() {
+  const key = getSelectedDateKey();
+  localStorage.removeItem(key);
+  alert('Data deleted for selected date!');
+  location.reload();
+}
+
+function getSelectedDateKey() {
+  const m = document.getElementById('month').value;
+  const d = document.getElementById('day').value;
+  const y = document.getElementById('year').value;
+  return `tracker_${m}_${d}_${y}`;
+}
+
+// Event Listeners
+document.getElementById('cutoff1').addEventListener('input', updateTotalSalary);
+document.getElementById('cutoff2').addEventListener('input', updateTotalSalary);
+document.getElementById('expenses-container').addEventListener('input', updateTotalExpenses);
+document.getElementById('addExpense').addEventListener('click', () => addExpenseItem());
+document.getElementById('saveBtn').addEventListener('click', saveData);
+document.getElementById('loadBtn').addEventListener('click', loadData);
+document.getElementById('deleteBtn').addEventListener('click', deleteData);
+
+// Default 1 expense field
+addExpenseItem();
