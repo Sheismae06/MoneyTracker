@@ -1,184 +1,196 @@
-// ===== DOM References =====
-const monthSelect = document.getElementById("monthSelect");
-const salary1 = document.getElementById("salary1");
-const salary2 = document.getElementById("salary2");
-const expenses = document.getElementById("expenses");
-const weeklyIncomes = document.getElementById("weeklyIncomes");
-const addDebtBtn = document.getElementById("addDebt");
-const debtsContainer = document.getElementById("debts");
-const saveBtn = document.getElementById("saveData");
-const exportBtn = document.getElementById("exportData");
-const musicIcon = document.getElementById("musicIcon");
-const audio = document.getElementById("bgMusic");
-const chartCanvas = document.getElementById("summaryChart");
-const sideIncomes = document.getElementById("sideIncomes");
+// Populate Month, Year, Day dropdowns
+const monthSelect = document.getElementById("month");
+const yearSelect = document.getElementById("year");
+const daySelect = document.getElementById("day");
 
-// ===== Chart Setup =====
-let summaryChart = new Chart(chartCanvas, {
-    type: "bar",
-    data: {
-        labels: ["Salary 1", "Salary 2", "Side Income", "Total Expenses"],
-        datasets: [{
-            label: "Budget Overview",
-            backgroundColor: ["#FFD700", "#FFD700", "#98FB98", "#FF7F7F"],
-            data: [0, 0, 0, 0]
-        }]
-    },
-    options: {
-        responsive: true,
-        scales: { y: { beginAtZero: true } }
-    }
+const months = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+];
+
+months.forEach((month, i) => {
+  const option = document.createElement("option");
+  option.value = i + 1;
+  option.text = month;
+  monthSelect.appendChild(option);
 });
 
-// ===== Event Listeners =====
-monthSelect.addEventListener("change", loadData);
-addDebtBtn.addEventListener("click", addDebtField);
-saveBtn.addEventListener("click", saveData);
-exportBtn.addEventListener("click", exportData);
-musicIcon.addEventListener("click", toggleMusic);
+for (let y = 2025; y >= 2019; y--) {
+  const option = document.createElement("option");
+  option.value = y;
+  option.text = y;
+  yearSelect.appendChild(option);
+}
 
-// ===== Functions =====
+for (let d = 1; d <= 31; d++) {
+  const option = document.createElement("option");
+  option.value = d;
+  option.text = d;
+  daySelect.appendChild(option);
+}
 
+// Elements
+const entriesContainer = document.getElementById("entries");
+const addRowBtn = document.getElementById("addRowBtn");
+const totalDisplay = document.getElementById("totalAmount");
+const saveBtn = document.getElementById("saveBtn");
+const salary1Input = document.getElementById("salary1");
+const salary2Input = document.getElementById("salary2");
+const totalSalaryDisplay = document.getElementById("totalSalary");
+const balanceDisplay = document.getElementById("balance");
+const ctx = document.getElementById("graphCanvas").getContext("2d");
+
+// Add new expense row
+function addRow(item = "", amount = "") {
+  const row = document.createElement("div");
+  row.className = "entry-row";
+
+  row.innerHTML = `
+    <input type="text" class="item-input" placeholder="Expense name" value="${item}">
+    <input type="number" class="amount-input" placeholder="Amount" value="${amount}">
+    <button class="deleteBtn">✖</button>
+  `;
+  entriesContainer.appendChild(row);
+  updateTotal();
+
+  row.querySelector(".deleteBtn").addEventListener("click", () => {
+    row.remove();
+    updateTotal();
+  });
+}
+
+// Update total expense
+function updateTotal() {
+  const amounts = document.querySelectorAll(".amount-input");
+  let total = 0;
+  amounts.forEach(input => {
+    total += Number(input.value || 0);
+  });
+  totalDisplay.textContent = total.toFixed(2);
+
+  const salary1 = parseFloat(salary1Input.value) || 0;
+  const salary2 = parseFloat(salary2Input.value) || 0;
+  const totalSalary = salary1 + salary2;
+  totalSalaryDisplay.textContent = totalSalary.toFixed(2);
+  balanceDisplay.textContent = (totalSalary - total).toFixed(2);
+  updateGraph();
+}
+
+// Save to localStorage
 function saveData() {
-    const data = {
-        salary1: salary1.value,
-        salary2: salary2.value,
-        expenses: expenses.value,
-        weeklyIncome: weeklyIncomes.value,
-        sideIncome: sideIncomes.value,
-        debts: Array.from(debtsContainer.querySelectorAll(".debt-row")).map(row => ({
-            name: row.querySelector(".debt-name").value,
-            total: row.querySelector(".debt-total").value,
-            paid: row.querySelector(".debt-paid").value
-        }))
-    };
-    localStorage.setItem(`budget_${monthSelect.value}`, JSON.stringify(data));
-    updateChart();
-    alert("✅ Data saved!");
+  const key = `${yearSelect.value}-${monthSelect.value}-${daySelect.value}`;
+  const items = document.querySelectorAll(".item-input");
+  const amounts = document.querySelectorAll(".amount-input");
+
+  const data = {
+    entries: [],
+    salary1: salary1Input.value,
+    salary2: salary2Input.value
+  };
+
+  items.forEach((item, i) => {
+    data.entries.push({
+      item: item.value,
+      amount: amounts[i].value
+    });
+  });
+
+  localStorage.setItem(key, JSON.stringify(data));
+  alert("Saved successfully!");
+  updateGraph(); // update after saving
 }
 
+// Load from localStorage
 function loadData() {
-    const saved = localStorage.getItem(`budget_${monthSelect.value}`);
-    if (saved) {
-        const data = JSON.parse(saved);
-        salary1.value = data.salary1 || "";
-        salary2.value = data.salary2 || "";
-        expenses.value = data.expenses || "";
-        weeklyIncomes.value = data.weeklyIncome || "";
-        sideIncomes.value = data.sideIncome || "";
-        debtsContainer.innerHTML = "";
-        (data.debts || []).forEach(debt => addDebtField(debt));
-        updateChart();
-    } else {
-        salary1.value = "";
-        salary2.value = "";
-        expenses.value = "";
-        weeklyIncomes.value = "";
-        sideIncomes.value = "";
-        debtsContainer.innerHTML = "";
-        updateChart();
-    }
+  const key = `${yearSelect.value}-${monthSelect.value}-${daySelect.value}`;
+  const data = JSON.parse(localStorage.getItem(key));
+
+  entriesContainer.innerHTML = "";
+  if (data) {
+    salary1Input.value = data.salary1 || "";
+    salary2Input.value = data.salary2 || "";
+    data.entries.forEach(entry => addRow(entry.item, entry.amount));
+  } else {
+    salary1Input.value = "";
+    salary2Input.value = "";
+    addRow();
+  }
+
+  updateTotal();
 }
 
-function addDebtField(data = {}) {
-    const row = document.createElement("div");
-    row.classList.add("debt-row");
-    row.innerHTML = `
-        <input type="text" class="debt-name" placeholder="Debt name" value="${data.name || ""}">
-        <input type="number" class="debt-total" placeholder="Total" value="${data.total || ""}">
-        <input type="number" class="debt-paid" placeholder="Paid" value="${data.paid || ""}">
-        <span class="debt-remaining">Remaining: ₱0</span>
-        <button onclick="this.parentElement.remove(); updateChart();">❌</button>
-    `;
-    debtsContainer.appendChild(row);
-    updateChart();
-}
+// Update graph
+let myChart;
+function updateGraph() {
+  const labels = [];
+  const values = [];
 
-function exportData() {
-    const data = {
-        salary1: salary1.value,
-        salary2: salary2.value,
-        expenses: expenses.value,
-        weeklyIncome: weeklyIncomes.value,
-        sideIncome: sideIncomes.value,
-        debts: Array.from(debtsContainer.querySelectorAll(".debt-row")).map(row => ({
-            name: row.querySelector(".debt-name").value,
-            total: row.querySelector(".debt-total").value,
-            paid: row.querySelector(".debt-paid").value
-        }))
-    };
+  for (let d = 1; d <= 31; d++) {
+    const key = `${yearSelect.value}-${monthSelect.value}-${d}`;
+    const data = JSON.parse(localStorage.getItem(key));
+    let dayTotal = 0;
 
-    let text = `📅 MONTH: ${monthSelect.value}\n\n`;
-    text += `💼 SALARY 1: ₱${data.salary1}\n💼 SALARY 2: ₱${data.salary2}\n📋 EXPENSES:\n${data.expenses}\n\n`;
-    text += `📆 WEEKLY INCOME:\n${data.weeklyIncome}\n\n💼 SIDE INCOME:\n${data.sideIncome}\n\n`;
-
-    if (data.debts.length) {
-        text += `📉 DEBTS:\n`;
-        data.debts.forEach(debt => {
-            const remaining = debt.total - debt.paid;
-            text += `- ${debt.name}: ₱${debt.total} - ₱${debt.paid} = ₱${remaining} remaining\n`;
-        });
+    if (data && data.entries) {
+      data.entries.forEach(entry => {
+        dayTotal += Number(entry.amount);
+      });
     }
 
-    const blob = new Blob([text], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `Budget_${monthSelect.value}.txt`;
-    link.click();
-    URL.revokeObjectURL(url);
-}
+    labels.push(`Day ${d}`);
+    values.push(dayTotal);
+  }
 
-function updateChart() {
-    let salaryOne = parseFloat(salary1.value) || 0;
-    let salaryTwo = parseFloat(salary2.value) || 0;
-    let sideIncomeTotal = 0;
+  if (myChart) myChart.destroy();
 
-    // Side income parsing (example format: Ukay - 100 capital + 250 profit)
-    const lines = sideIncomes.value.split("\n");
-    lines.forEach(line => {
-        const match = line.match(/[-+]?[\d]+/g);
-        if (match && match.length >= 2) {
-            let capital = parseFloat(match[0]);
-            let profit = parseFloat(match[1]);
-            sideIncomeTotal += profit;
+  myChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Expenses per Day',
+        data: values,
+        backgroundColor: '#FFD700'
+      }]
+    },
+    options: {
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            color: '#fff'
+          }
+        },
+        x: {
+          ticks: {
+            color: '#fff'
+          }
         }
-    });
-
-    let expensesList = expenses.value.split("\n");
-    let expensesTotal = expensesList.reduce((sum, item) => {
-        let num = parseFloat(item.match(/[\d.]+/)?.[0]) || 0;
-        return sum + num;
-    }, 0);
-
-    summaryChart.data.datasets[0].data = [
-        salaryOne,
-        salaryTwo,
-        sideIncomeTotal,
-        expensesTotal
-    ];
-    summaryChart.update();
-
-    // Update debt remaining
-    debtsContainer.querySelectorAll(".debt-row").forEach(row => {
-        const total = parseFloat(row.querySelector(".debt-total").value) || 0;
-        const paid = parseFloat(row.querySelector(".debt-paid").value) || 0;
-        const remaining = total - paid;
-        row.querySelector(".debt-remaining").textContent = `Remaining: ₱${remaining}`;
-    });
-}
-
-function toggleMusic() {
-    if (audio.paused) {
-        audio.play();
-        musicIcon.classList.add("playing");
-    } else {
-        audio.pause();
-        musicIcon.classList.remove("playing");
+      },
+      plugins: {
+        legend: {
+          labels: {
+            color: '#fff'
+          }
+        }
+      }
     }
+  });
 }
 
-// ===== Initialize =====
-window.addEventListener("load", () => {
-    loadData();
+// Event Listeners
+addRowBtn.addEventListener("click", () => addRow());
+saveBtn.addEventListener("click", saveData);
+monthSelect.addEventListener("change", loadData);
+yearSelect.addEventListener("change", loadData);
+daySelect.addEventListener("change", loadData);
+salary1Input.addEventListener("input", updateTotal);
+salary2Input.addEventListener("input", updateTotal);
+
+// Initial setup
+window.addEventListener("DOMContentLoaded", () => {
+  const today = new Date();
+  monthSelect.value = today.getMonth() + 1;
+  yearSelect.value = today.getFullYear();
+  daySelect.value = today.getDate();
+  loadData();
 });
