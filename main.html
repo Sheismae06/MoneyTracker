@@ -1,47 +1,139 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Daily Expense Tracker</title>
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body>
-  <nav class="navbar">💰 Daily Expense Tracker</nav>
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('expense-form');
+  const trackList = document.getElementById('track-list');
+  const totalDisplay = document.getElementById('total');
+  const addMoreBtn = document.getElementById('add-more');
+  const filterBtn = document.getElementById('filterBtn');
 
-  <main class="container">
-    <section class="date-section">
-      <label for="date">📅 Select Date:</label>
-      <input type="date" id="date" />
-    </section>
+  let tracks = JSON.parse(localStorage.getItem('tracks')) || [];
 
-    <form id="expense-form">
-      <div id="expense-fields">
-        <div class="expense-row">
-          <input type="text" class="description" placeholder="Description" required />
-          <input type="number" class="amount" placeholder="Amount" required />
-        </div>
-      </div>
-      <div class="button-row">
-        <button type="button" id="add-more">➕ Add More</button>
-        <button type="submit" class="save-btn">💾 Save</button>
-      </div>
-      <div class="total-display">Total: PHP <span id="total">0.00</span></div>
-    </form>
+  function renderTracks(filteredTracks = tracks) {
+    trackList.innerHTML = '';
+    filteredTracks.forEach((track, index) => {
+      const container = document.createElement('div');
+      container.className = 'track-item';
 
-    <section id="saved-tracks">
-      <h2>📌 Saved Expenses</h2>
-      <div class="filter-bar">
-        <label>Start Date:</label>
-        <input type="date" id="startDate" />
-        <label>End Date:</label>
-        <input type="date" id="endDate" />
-        <button id="filterBtn">🔍 Filter</button>
-      </div>
-      <div id="track-list"></div>
-    </section>
-  </main>
+      const date = document.createElement('div');
+      date.textContent = `📅 ${track.date}`;
 
-  <script src="script.js"></script>
-</body>
-</html>
+      const list = document.createElement('ul');
+      track.entries.forEach(entry => {
+        const item = document.createElement('li');
+        item.textContent = `${entry.description} - PHP ${entry.amount.toFixed(2)}`;
+        list.appendChild(item);
+      });
+
+      const total = document.createElement('div');
+      const sum = track.entries.reduce((a, b) => a + b.amount, 0);
+      total.textContent = `Total: PHP ${sum.toFixed(2)}`;
+
+      const editBtn = document.createElement('button');
+      editBtn.textContent = '✏️ Edit';
+      editBtn.onclick = () => editTrack(index);
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.textContent = '🗑️ Delete';
+      deleteBtn.onclick = () => {
+        if (confirm('Are you sure you want to delete this entry?')) {
+          tracks.splice(index, 1);
+          localStorage.setItem('tracks', JSON.stringify(tracks));
+          renderTracks();
+        }
+      };
+
+      container.appendChild(date);
+      container.appendChild(list);
+      container.appendChild(total);
+      container.appendChild(editBtn);
+      container.appendChild(deleteBtn);
+      trackList.appendChild(container);
+    });
+  }
+
+  function editTrack(index) {
+    const track = tracks[index];
+    document.getElementById('date').value = track.date;
+    const expenseFields = document.getElementById('expense-fields');
+    expenseFields.innerHTML = '';
+    track.entries.forEach(entry => {
+      const row = document.createElement('div');
+      row.className = 'expense-row';
+      row.innerHTML = `
+        <input type="text" class="description" placeholder="Description" value="${entry.description}" required />
+        <input type="number" class="amount" placeholder="Amount" value="${entry.amount}" required />
+      `;
+      expenseFields.appendChild(row);
+    });
+    tracks.splice(index, 1);
+    localStorage.setItem('tracks', JSON.stringify(tracks));
+    renderTracks();
+    calculateTotal();
+  }
+
+  function calculateTotal() {
+    const amountInputs = document.querySelectorAll('.amount');
+    let total = 0;
+    amountInputs.forEach(input => {
+      total += parseFloat(input.value) || 0;
+    });
+    totalDisplay.textContent = total.toFixed(2);
+  }
+
+  form.addEventListener('input', calculateTotal);
+
+  addMoreBtn.addEventListener('click', () => {
+    const row = document.createElement('div');
+    row.className = 'expense-row';
+    row.innerHTML = `
+      <input type="text" class="description" placeholder="Description" required />
+      <input type="number" class="amount" placeholder="Amount" required />
+    `;
+    document.getElementById('expense-fields').appendChild(row);
+  });
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const date = document.getElementById('date').value;
+    const descriptions = document.querySelectorAll('.description');
+    const amounts = document.querySelectorAll('.amount');
+
+    const entries = Array.from(descriptions).map((desc, i) => ({
+      description: desc.value.trim(),
+      amount: parseFloat(amounts[i].value) || 0
+    }));
+
+    if (!date || entries.length === 0 || entries.some(e => !e.description || !e.amount)) {
+      alert('Please fill all fields correctly.');
+      return;
+    }
+
+    tracks.push({ date, entries });
+    localStorage.setItem('tracks', JSON.stringify(tracks));
+    form.reset();
+    document.getElementById('expense-fields').innerHTML = `
+      <div class="expense-row">
+        <input type="text" class="description" placeholder="Description" required />
+        <input type="number" class="amount" placeholder="Amount" required />
+      </div>`;
+    calculateTotal();
+    renderTracks();
+  });
+
+  filterBtn.addEventListener('click', () => {
+    const startDate = document.getElementById('startDate').value;
+    const endDate = document.getElementById('endDate').value;
+
+    if (!startDate || !endDate) {
+      alert('Please select both start and end dates.');
+      return;
+    }
+
+    const filtered = tracks.filter(track => {
+      return track.date >= startDate && track.date <= endDate;
+    });
+
+    renderTracks(filtered);
+  });
+
+  renderTracks();
+});
