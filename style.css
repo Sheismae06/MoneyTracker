@@ -1,53 +1,125 @@
-body {
-  font-family: sans-serif;
+* {
   margin: 0;
   padding: 0;
-  background-color: #f8f8f8;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', sans-serif;
 }
 
-nav {
-  background-color: #333;
-  color: #fff;
-  padding: 10px 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.logo {
-  font-size: 1.2rem;
-  font-weight: bold;
-}
-
-.music-icon {
-  font-size: 1.2rem;
-  cursor: pointer;
-}
-
-.salary-inputs, .selector, .entries, .history, .chart-section {
+body {
+  background-color: #111;
+  color: #f9f9f9;
   padding: 20px;
 }
 
-input[type="number"], input[type="text"], select {
-  margin: 5px;
-  padding: 5px;
+nav {
+  background-color: #222;
+  color: gold;
+  padding: 15px 20px;
+  font-size: 1.5rem;
+  font-weight: bold;
+  border-radius: 10px;
+  text-align: center;
+  margin-bottom: 20px;
 }
 
-.entry {
+main {
+  max-width: 800px;
+  margin: auto;
+}
+
+section {
+  background-color: #1b1b1b;
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 15px;
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+}
+
+h2 {
+  color: gold;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.salary-inputs label,
+.expense-row {
   display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+input[type="number"],
+input[type="text"],
+select {
+  padding: 8px;
+  border: none;
+  border-radius: 8px;
+  outline: none;
+  width: 60%;
+  background-color: #333;
+  color: white;
+}
+
+input[type="number"]::placeholder,
+input[type="text"]::placeholder {
+  color: #aaa;
+}
+
+.date-selectors {
+  display: flex;
+  justify-content: space-between;
   gap: 10px;
 }
 
-button {
+#add-expense {
   margin-top: 10px;
-  padding: 5px 10px;
+  width: 100%;
 }
 
-.total, #totalSalary, #overallTotal {
+button {
+  padding: 10px;
+  background-color: #333;
+  color: white;
+  border: 2px solid gold;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+button:hover {
+  background-color: gold;
+  color: black;
+  transform: scale(1.05);
+}
+
+button:active {
+  transform: scale(0.95);
+}
+
+.save-section {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.total-salary,
+.totals {
+  font-size: 1.2rem;
   font-weight: bold;
   margin-top: 10px;
+  text-align: center;
 }
 
 canvas {
-  max-width: 100%;
+  display: block;
+  margin: 20px auto;
+}
+
+footer {
+  text-align: center;
+  margin-top: 30px;
+  font-size: 0.8rem;
+  color: #888;
 }
