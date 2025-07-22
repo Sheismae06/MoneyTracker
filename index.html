@@ -1,89 +1,119 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dark Candy Budget Tracker</title>
-  <link rel="stylesheet" href="style.css"/>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header>
-    <nav>
-      <h1>🍭 Budget Tracker</h1>
-      <div id="musicToggle">
-        <!-- Piano SVG -->
-        <svg id="pianoIcon" width="32" height="32" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
-          <path d="M3 5v14a2 2 0 002 2h14a2 2 0 002-2V5H3zm16 2v3h-2V7h2zm-4 0v6h-2V7h2zm-4 0v6H9V7h2zM5 7h2v10H5V7zm14 10h-2v-4h2v4z"/>
-        </svg>
-      </div>
-    </nav>
-  </header>
-
-  <main>
-    <!-- Month Selector -->
-    <section class="month-select">
+  <nav class="navbar">
+    <h1>Dark Candy Budget Tracker</h1>
+    <div id="music-toggle" class="music-icon" title="Toggle Music">
+      <!-- SVG icon added in JS -->
+    </div>
+  </nav>  <main>
+    <section class="selector">
       <label for="month">Select Month:</label>
-      <input type="month" id="month"/>
-      <button onclick="saveMonth()">💾 Save</button>
-    </section>
+      <select id="month">
+        <option value="july">July</option>
+        <option value="august">August</option>
+        <!-- Add more months as needed -->
+      </select>
+      <button onclick="saveData()">Save Month</button>
+    </section><section class="salary-section">
+  <h2>Monthly Salary and Expenses</h2>
+  <label for="salary">Salary this Cutoff:</label>
+  <input type="number" id="salary" placeholder="₱0.00" />
+  <label for="expenses">Total Expenses:</label>
+  <input type="number" id="expenses" placeholder="₱0.00" />
+</section>
 
-    <!-- Salary Section -->
-    <section class="salary">
-      <h2>💼 Salary</h2>
-      <div class="row">
-        <input type="text" placeholder="Cutoff 1 (e.g. July 15)" />
-        <input type="number" placeholder="Amount" />
-      </div>
-      <div class="row">
-        <input type="text" placeholder="Cutoff 2 (e.g. July 30)" />
-        <input type="number" placeholder="Amount" />
-      </div>
-    </section>
+<section class="income-section">
+  <h2>Side Income / Business</h2>
+  <div class="income-row">
+    <label>Food</label>
+    <input type="number" placeholder="Capital" />
+    <input type="number" placeholder="Profit" />
+  </div>
+  <div class="income-row">
+    <label>Perfume</label>
+    <input type="number" placeholder="Capital" />
+    <input type="number" placeholder="Profit" />
+  </div>
+  <div class="income-row">
+    <label>Ukay</label>
+    <input type="number" placeholder="Capital" />
+    <input type="number" placeholder="Profit" />
+  </div>
+</section>
 
-    <!-- Weekly Tracker -->
-    <section class="weekly">
-      <h2>📆 Weekly Tracker</h2>
-      <div id="weeks"></div>
-      <button onclick="addWeek()">➕ Add Week</button>
-    </section>
+<section class="weekly-section">
+  <h2>Weekly Tracker</h2>
+  <div class="week-row">
+    <label>Week 1:</label><input type="number" />
+  </div>
+  <div class="week-row">
+    <label>Week 2:</label><input type="number" />
+  </div>
+  <div class="week-row">
+    <label>Week 3:</label><input type="number" />
+  </div>
+  <div class="week-row">
+    <label>Week 4:</label><input type="number" />
+  </div>
+</section>
 
-    <!-- Debt Section -->
-    <section class="debt">
-      <h2>📉 Debts</h2>
-      <div id="debtList"></div>
-      <button onclick="addDebt()">➕ Add Debt</button>
-      <div class="totals">
-        <p><strong>Total Debt:</strong> <span id="totalDebt">₱0</span></p>
-        <p><strong>Total Paid:</strong> <span id="totalPaid">₱0</span></p>
-        <p><strong>Remaining Balance:</strong> <span id="remainingDebt">₱0</span></p>
-      </div>
-    </section>
+<section class="debt-section">
+  <h2>Debt Tracker</h2>
+  <div class="debt-row">
+    <label>Gcash:</label>
+    <input type="number" placeholder="Total Debt" />
+    <input type="number" placeholder="Paid This Month" />
+  </div>
+  <div class="debt-row">
+    <label>UD Loans:</label>
+    <input type="number" placeholder="Total Debt" />
+    <input type="number" placeholder="Paid This Month" />
+  </div>
+  <div class="debt-row">
+    <label>Maya:</label>
+    <input type="number" placeholder="Total Debt" />
+    <input type="number" placeholder="Paid This Month" />
+  </div>
+  <div class="debt-row">
+    <label>Billease:</label>
+    <input type="number" placeholder="Total Debt" />
+    <input type="number" placeholder="Paid This Month" />
+  </div>
+  <div class="debt-row">
+    <label>Joecelle:</label>
+    <input type="number" placeholder="Total Debt" />
+    <input type="number" placeholder="Paid This Month" />
+  </div>
+  <div class="debt-row">
+    <label>Girlie:</label>
+    <input type="number" placeholder="Total Debt" />
+    <input type="number" placeholder="Paid This Month" />
+  </div>
+  <div class="debt-row">
+    <label>Tiktok PayLater:</label>
+    <input type="number" placeholder="Total Debt" />
+    <input type="number" placeholder="Paid This Month" />
+  </div>
+  <div class="debt-summary">
+    <p><strong>Total Debt:</strong> ₱<span id="total-debt">0.00</span></p>
+    <p><strong>Current Balance:</strong> ₱<span id="balance-debt">0.00</span></p>
+  </div>
+</section>
 
-    <!-- Side Income -->
-    <section class="side-income">
-      <h2>💸 Side Income</h2>
-      <div id="businessList"></div>
-      <button onclick="addBusiness()">➕ Add Business</button>
-    </section>
+<section class="visual-section">
+  <h2>Summary Chart</h2>
+  <canvas id="summaryChart"></canvas>
+</section>
 
-    <!-- Chart Section -->
-    <section class="chart">
-      <h2>📊 Monthly Summary</h2>
-      <canvas id="summaryChart"></canvas>
-    </section>
+<button onclick="exportData()">Export Data</button>
 
-    <!-- Export -->
-    <section class="export">
-      <button onclick="exportData()">📥 Export</button>
-    </section>
-  </main>
+  </main><audio id="bg-music" src="https://youtu.be/qBeX-iF_SpM?si=2Ohr_qvAAV-LOzHh" type="audio/mp3"></audio>
 
-  <audio id="bgMusic" loop>
-    <source src="https://www.youtube.com/embed/qBeX-iF_SpM?autoplay=1" type="audio/mp3"/>
-    Your browser does not support the audio element.
-  </audio>
-
-  <script src="script.js"></script>
-</body>
+  <script src="script.js"></script></body>
 </html>
