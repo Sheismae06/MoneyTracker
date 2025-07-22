@@ -1,163 +1,124 @@
-/* General Reset */
+/* Reset & Basics */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-}
-
-/* Body Styling */
-body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #f5f5f5;
-  padding: 20px;
-  color: #333;
 }
 
-/* Main Container */
+body {
+  background-color: #f5f5f5;
+  color: #222;
+  padding: 2rem;
+  line-height: 1.6;
+}
+
+/* Elegant Container */
 .container {
   max-width: 800px;
-  margin: 0 auto;
+  margin: auto;
   background-color: #ffffff;
-  padding: 25px 30px;
-  border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 
-/* Title */
+/* Header */
 h1 {
-  font-size: 26px;
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
   text-align: center;
-  margin-bottom: 25px;
-  color: #444;
-}
-
-/* Dropdowns */
-.date-selects {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 25px;
-}
-
-select {
-  flex: 1;
-  padding: 8px 10px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-  background-color: #fefefe;
-}
-
-/* Salary Section */
-.salary-inputs {
-  margin-bottom: 25px;
-}
-
-.salary-inputs label {
-  display: block;
-  font-weight: 600;
-  margin: 12px 0 5px;
-}
-
-.salary-inputs input {
-  width: 100%;
-  padding: 8px;
-  margin-bottom: 5px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-}
-
-/* Daily Expenses Section */
-.expense-group {
-  margin-bottom: 15px;
-  display: flex;
-  gap: 10px;
-}
-
-.expense-group input {
-  flex: 1;
-  padding: 8px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-}
-
-/* Add More Button */
-#add-expense {
-  background-color: #28a745;
-  color: #fff;
-  padding: 8px 15px;
-  margin-top: 10px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-#add-expense:hover {
-  background-color: #218838;
-}
-
-/* Totals Section */
-.totals, .summary {
-  margin-top: 20px;
-  padding: 15px;
-  background-color: #fafafa;
-  border: 1px dashed #ccc;
-  border-radius: 5px;
-}
-
-.totals strong, .summary strong {
-  display: block;
-  margin: 8px 0;
-  font-weight: bold;
-}
-
-/* Save/Edit/Delete Buttons */
-button.save-btn, button.edit-btn, button.delete-btn {
-  padding: 7px 14px;
-  border: none;
-  border-radius: 5px;
-  margin: 5px 5px 0 0;
-  cursor: pointer;
-  color: #fff;
-}
-
-button.save-btn {
-  background-color: #007bff;
-}
-button.save-btn:hover {
-  background-color: #0069d9;
-}
-
-button.edit-btn {
-  background-color: #ffc107;
   color: #333;
 }
-button.edit-btn:hover {
-  background-color: #e0a800;
+
+/* Form Styles */
+form {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 2rem;
 }
 
-button.delete-btn {
-  background-color: #dc3545;
+input[type="text"],
+input[type="number"],
+input[type="date"],
+select {
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  font-size: 1rem;
+  width: 100%;
 }
-button.delete-btn:hover {
-  background-color: #c82333;
+
+button {
+  padding: 0.75rem 1.5rem;
+  background-color: #000;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+button:hover {
+  background-color: #444;
+}
+
+#saveBtn {
+  background-color: #0d6efd;
+}
+
+#saveBtn:hover {
+  background-color: #0b5ed7;
+}
+
+/* Section Title */
+.section-title {
+  font-size: 1.2rem;
+  margin-top: 2rem;
+  margin-bottom: 0.5rem;
+  color: #666;
+}
+
+/* Entries Display */
+.entry-item {
+  background-color: #fdfdfd;
+  padding: 1rem;
+  border-left: 4px solid #0d6efd;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+}
+
+.entry-item span {
+  display: block;
+  font-size: 0.95rem;
+}
+
+/* Date Picker */
+#datePicker {
+  margin-bottom: 1.5rem;
+  font-size: 1rem;
 }
 
 /* Chart Container */
-.chart-container {
-  margin-top: 30px;
+#chartContainer {
+  margin-top: 2rem;
 }
 
 canvas {
-  width: 100% !important;
-  height: auto !important;
+  max-width: 100%;
+  border-radius: 12px;
+  background: #fff;
+  padding: 1rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
-/* Responsive Layout */
+/* Responsive */
 @media (max-width: 600px) {
-  .date-selects {
-    flex-direction: column;
+  body {
+    padding: 1rem;
   }
 
-  .expense-group {
-    flex-direction: column;
+  .container {
+    padding: 1.5rem;
   }
 }
