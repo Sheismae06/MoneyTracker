@@ -1,124 +1,143 @@
-/* Reset & Basics */
+/* Reset and base styles */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Segoe UI', sans-serif;
 }
 
 body {
-  background-color: #f5f5f5;
-  color: #222;
+  background-color: #1a1a1a;
+  color: #f5f5f5;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
   padding: 2rem;
-  line-height: 1.6;
+  min-height: 100vh;
 }
 
-/* Elegant Container */
+/* Container */
 .container {
-  max-width: 800px;
-  margin: auto;
-  background-color: #ffffff;
+  background: #2c2c2c;
   padding: 2rem;
-  border-radius: 16px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 600px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+  transition: all 0.3s ease;
 }
 
-/* Header */
 h1 {
-  font-size: 2rem;
-  margin-bottom: 1.5rem;
   text-align: center;
-  color: #333;
+  margin-bottom: 1.5rem;
+  font-size: 2rem;
+  color: gold;
 }
 
-/* Form Styles */
-form {
-  display: grid;
-  gap: 1rem;
-  margin-bottom: 2rem;
+/* Input Section */
+.input-section,
+.calendar-section {
+  display: flex;
+  gap: 0.8rem;
+  margin-bottom: 1.2rem;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 input[type="text"],
 input[type="number"],
-input[type="date"],
-select {
-  padding: 0.75rem;
-  border: 1px solid #ccc;
-  border-radius: 12px;
+input[type="date"] {
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 10px;
   font-size: 1rem;
-  width: 100%;
+  width: calc(50% - 1rem);
+  background-color: #444;
+  color: #f5f5f5;
+  transition: all 0.2s ease;
 }
 
+input[type="text"]::placeholder,
+input[type="number"]::placeholder {
+  color: #bbb;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+input[type="date"]:focus {
+  outline: none;
+  background-color: #555;
+}
+
+/* Buttons */
 button {
-  padding: 0.75rem 1.5rem;
-  background-color: #000;
-  color: #fff;
+  padding: 0.6rem 1.2rem;
+  font-size: 1rem;
+  background-color: gold;
+  color: #1a1a1a;
   border: none;
   border-radius: 12px;
   cursor: pointer;
-  transition: background-color 0.2s ease-in-out;
+  transition: background-color 0.2s ease;
+  font-weight: bold;
 }
 
 button:hover {
-  background-color: #444;
+  background-color: #e6c200;
 }
 
-#saveBtn {
-  background-color: #0d6efd;
-}
-
-#saveBtn:hover {
-  background-color: #0b5ed7;
-}
-
-/* Section Title */
-.section-title {
-  font-size: 1.2rem;
-  margin-top: 2rem;
-  margin-bottom: 0.5rem;
-  color: #666;
-}
-
-/* Entries Display */
-.entry-item {
-  background-color: #fdfdfd;
-  padding: 1rem;
-  border-left: 4px solid #0d6efd;
-  border-radius: 10px;
+/* List Section */
+#transactionList {
+  list-style: none;
+  margin-top: 1rem;
   margin-bottom: 1rem;
+  padding: 0;
+  max-height: 220px;
+  overflow-y: auto;
+  scrollbar-width: thin;
 }
 
-.entry-item span {
-  display: block;
-  font-size: 0.95rem;
+#transactionList li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #3a3a3a;
+  padding: 0.6rem 1rem;
+  margin-bottom: 0.6rem;
+  border-radius: 10px;
+  transition: all 0.2s ease;
 }
 
-/* Date Picker */
-#datePicker {
-  margin-bottom: 1.5rem;
+#transactionList li:hover {
+  background: #444;
+}
+
+#transactionList li span {
   font-size: 1rem;
 }
 
-/* Chart Container */
-#chartContainer {
-  margin-top: 2rem;
+.summary {
+  text-align: center;
+  margin: 1.5rem 0;
 }
 
-canvas {
+.summary h2 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+#chart {
+  margin-top: 1rem;
   max-width: 100%;
-  border-radius: 12px;
-  background: #fff;
-  padding: 1rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
-/* Responsive */
-@media (max-width: 600px) {
-  body {
-    padding: 1rem;
-  }
+.actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
 
-  .container {
-    padding: 1.5rem;
-  }
+.actions button {
+  min-width: 100px;
 }
