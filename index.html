@@ -1,43 +1,72 @@
-<!DOCTYPE html><html lang="en"><head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Money Tracker</title>
-  <link rel="stylesheet" href="style.css" />
-  <script src="chart.umd.js"></script>
-</head><body>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
   <div class="container">
-    <h1>Money Tracker</h1><div class="form-section">
-  <label for="date">Date:</label>
-  <input type="date" id="date" />
+    <h1>Money Tracker</h1>
 
-  <label for="salary">Salary:</label>
-  <input type="number" id="salary" />
+    <!-- 1. Select Date -->
+    <div class="section">
+      <label for="month">Select Date:</label><br/>
+      <select id="month">
+        <option value="">Month</option>
+      </select>
+      <select id="day">
+        <option value="">Day</option>
+      </select>
+      <select id="year">
+        <option value="">Year</option>
+      </select>
+    </div>
 
-  <label for="expenses">Expenses:</label>
-  <input type="number" id="expenses" />
+    <!-- 2. Salary Input -->
+    <div class="section">
+      <label>Salary Input:</label>
+      <input type="number" id="cutoff1" placeholder="Cutoff 1">
+      <input type="number" id="cutoff2" placeholder="Cutoff 2">
+      <input type="text" id="totalSalary" placeholder="Total Salary" readonly>
+    </div>
 
-  <button onclick="addEntry()">Add Entry</button>
-</div>
+    <!-- 3. Daily Expenses/Bills -->
+    <div class="section">
+      <label>Daily Expenses / Bills:</label>
+      <div id="expenseContainer">
+        <div class="expenseRow">
+          <input type="text" class="description" placeholder="Description">
+          <input type="number" class="amount" placeholder="Amount">
+        </div>
+      </div>
+      <button id="addExpense">Add More</button>
+      <input type="text" id="totalExpenses" placeholder="Total Expenses" readonly>
+    </div>
 
-<div class="summary">
-  <p><strong>Total Salary:</strong> <span id="totalSalary">₱0.00</span></p>
-  <p><strong>Total Expenses:</strong> <span id="totalExpenses">₱0.00</span></p>
-  <p><strong>Total Savings:</strong> <span id="totalSavings">₱0.00</span></p>
-</div>
+    <!-- 6. Computation for Today -->
+    <div class="section">
+      <label>Computation for Today:</label>
+      <input type="text" id="computedSalary" placeholder="Total Salary" readonly>
+      <input type="text" id="computedExpenses" placeholder="Total Expenses/Bills" readonly>
+      <input type="text" id="balance" placeholder="Balance" readonly>
+    </div>
 
-<table id="entryTable">
-  <thead>
-    <tr>
-      <th>Date</th>
-      <th>Salary</th>
-      <th>Expenses</th>
-      <th>Savings</th>
-      <th>Actions</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
+    <!-- 7. Chart -->
+    <div class="section">
+      <canvas id="expenseChart"></canvas>
+    </div>
 
-<canvas id="pieChart"></canvas>
+    <!-- 8. Action Buttons -->
+    <div class="section">
+      <button id="saveBtn">Save</button>
+      <button id="editBtn">Edit</button>
+      <button id="deleteBtn">Delete</button>
+    </div>
+  </div>
 
-  </div>  <script src="script.js"></script></body></html>
+  <script src="chart.umd.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
