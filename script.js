@@ -1,104 +1,150 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const expenseListContainer = document.getElementById('expenseListContainer');
-  const addExpenseBtn = document.getElementById('addExpenseBtn');
-  const totalAmountEl = document.getElementById('totalAmount');
-  const saveBtn = document.getElementById('saveBtn');
-  const historyList = document.getElementById('historyList');
-  const confirmationMsg = document.getElementById('confirmationMsg');
-  const trackDateInput = document.getElementById('trackDate');
+document.addEventListener("DOMContentLoaded", () => {
+  const dateInput = document.getElementById("date");
+  const form = document.getElementById("expense-form");
+  const addMoreBtn = document.getElementById("add-more");
+  const expenseFields = document.getElementById("expense-fields");
+  const totalDisplay = document.getElementById("total");
+  const trackList = document.getElementById("track-list");
 
-  function updateTotal() {
+  let editingEntry = null;
+
+  // Default to today's date
+  dateInput.valueAsDate = new Date();
+
+  function calculateTotal() {
     let total = 0;
-    document.querySelectorAll('.amount').forEach(input => {
-      const val = parseFloat(input.value);
-      if (!isNaN(val)) total += val;
+    const amountInputs = document.querySelectorAll(".amount");
+    amountInputs.forEach((input) => {
+      total += parseFloat(input.value) || 0;
     });
-    totalAmountEl.textContent = total.toFixed(2);
+    totalDisplay.textContent = total.toFixed(2);
   }
 
-  function createExpenseItem(desc = '', amount = '') {
-    const item = document.createElement('div');
-    item.className = 'expense-item';
-    item.innerHTML = `
-      <input type="text" placeholder="Description" class="desc" value="${desc}">
-      <input type="number" placeholder="Amount" class="amount" value="${amount}">
-      <button class="remove-btn">✖</button>
-    `;
+  function createExpenseRow(description = "", amount = "") {
+    const row = document.createElement("div");
+    row.className = "expense-row";
 
-    item.querySelector('.amount').addEventListener('input', updateTotal);
-    item.querySelector('.remove-btn').addEventListener('click', () => {
-      item.remove();
-      updateTotal();
-    });
+    const descInput = document.createElement("input");
+    descInput.type = "text";
+    descInput.className = "description";
+    descInput.placeholder = "Description";
+    descInput.value = description;
 
-    return item;
+    const amountInput = document.createElement("input");
+    amountInput.type = "number";
+    amountInput.className = "amount";
+    amountInput.placeholder = "Amount";
+    amountInput.value = amount;
+
+    amountInput.addEventListener("input", calculateTotal);
+
+    row.appendChild(descInput);
+    row.appendChild(amountInput);
+
+    return row;
   }
 
-  addExpenseBtn.addEventListener('click', () => {
-    const newItem = createExpenseItem();
-    expenseListContainer.appendChild(newItem);
+  addMoreBtn.addEventListener("click", () => {
+    const newRow = createExpenseRow();
+    expenseFields.appendChild(newRow);
   });
 
-  saveBtn.addEventListener('click', () => {
-    const date = trackDateInput.value;
-    if (!date) return alert('Please select a date.');
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const date = dateInput.value;
+    if (!date) return alert("Please select a date");
 
-    const entries = [];
-    document.querySelectorAll('.expense-item').forEach(item => {
-      const desc = item.querySelector('.desc').value.trim();
-      const amount = parseFloat(item.querySelector('.amount').value);
-      if (desc && !isNaN(amount)) {
-        entries.push({ desc, amount });
+    const expenses = [];
+    const rows = expenseFields.querySelectorAll(".expense-row");
+
+    rows.forEach((row) => {
+      const description = row.querySelector(".description").value.trim();
+      const amount = parseFloat(row.querySelector(".amount").value) || 0;
+      if (description) {
+        expenses.push({ description, amount });
       }
     });
 
-    if (entries.length === 0) {
-      alert('Please add at least one expense item.');
-      return;
-    }
+    if (expenses.length === 0) return alert("Please enter at least one expense.");
 
-    localStorage.setItem(`track-${date}`, JSON.stringify(entries));
-    confirmationMsg.classList.remove('hidden');
-    setTimeout(() => confirmationMsg.classList.add('hidden'), 3000);
-    loadHistory();
+    const data = JSON.parse(localStorage.getItem("expenses") || "{}");
+
+    data[date] = expenses;
+    localStorage.setItem("expenses", JSON.stringify(data));
+    loadSavedTracks();
+    form.reset();
+    expenseFields.innerHTML = "";
+    expenseFields.appendChild(createExpenseRow());
+    calculateTotal();
   });
 
-  function loadHistory() {
-    historyList.innerHTML = '';
-    for (let key in localStorage) {
-      if (key.startsWith('track-')) {
-        const date = key.replace('track-', '');
-        const li = document.createElement('li');
-        li.innerHTML = `
-          <strong>${date}</strong>
-          <button class="view-btn">View</button>
-          <button class="delete-btn">🗑</button>
+  function loadSavedTracks() {
+    trackList.innerHTML = "";
+    const data = JSON.parse(localStorage.getItem("expenses") || "{}");
+
+    Object.keys(data).sort().reverse().forEach((date) => {
+      const section = document.createElement("div");
+      section.className = "track-date";
+
+      const title = document.createElement("h3");
+      title.textContent = date;
+      section.appendChild(title);
+
+      const list = document.createElement("ul");
+      let total = 0;
+
+      data[date].forEach((entry, idx) => {
+        const item = document.createElement("li");
+        item.innerHTML = `
+          <strong>${entry.description}</strong> - PHP ${entry.amount.toFixed(2)}
+          <button class="edit-btn" data-date="${date}" data-index="${idx}">✏️</button>
+          <button class="delete-btn" data-date="${date}" data-index="${idx}">🗑️</button>
         `;
+        total += entry.amount;
+        list.appendChild(item);
+      });
 
-        li.querySelector('.view-btn').addEventListener('click', () => {
-          const data = JSON.parse(localStorage.getItem(key));
-          trackDateInput.value = date;
-          expenseListContainer.innerHTML = '';
-          data.forEach(entry => {
-            const item = createExpenseItem(entry.desc, entry.amount);
-            expenseListContainer.appendChild(item);
-          });
-          updateTotal();
-        });
+      const totalEl = document.createElement("p");
+      totalEl.innerHTML = `<strong>Total:</strong> PHP ${total.toFixed(2)}`;
 
-        li.querySelector('.delete-btn').addEventListener('click', () => {
-          if (confirm(`Delete record for ${date}?`)) {
-            localStorage.removeItem(key);
-            loadHistory();
-          }
-        });
-
-        historyList.appendChild(li);
-      }
-    }
+      section.appendChild(list);
+      section.appendChild(totalEl);
+      trackList.appendChild(section);
+    });
   }
 
-  trackDateInput.valueAsDate = new Date();
-  updateTotal();
-  loadHistory();
+  trackList.addEventListener("click", (e) => {
+    if (e.target.classList.contains("delete-btn")) {
+      const { date, index } = e.target.dataset;
+      const data = JSON.parse(localStorage.getItem("expenses") || "{}");
+
+      data[date].splice(index, 1);
+      if (data[date].length === 0) delete data[date];
+
+      localStorage.setItem("expenses", JSON.stringify(data));
+      loadSavedTracks();
+    }
+
+    if (e.target.classList.contains("edit-btn")) {
+      const { date, index } = e.target.dataset;
+      const data = JSON.parse(localStorage.getItem("expenses") || "{}");
+      const entry = data[date][index];
+
+      // Pre-fill form
+      dateInput.value = date;
+      expenseFields.innerHTML = "";
+      expenseFields.appendChild(createExpenseRow(entry.description, entry.amount));
+      calculateTotal();
+
+      // Remove the entry from the list before re-saving
+      data[date].splice(index, 1);
+      if (data[date].length === 0) delete data[date];
+      localStorage.setItem("expenses", JSON.stringify(data));
+      loadSavedTracks();
+    }
+  });
+
+  // Initial load
+  expenseFields.appendChild(createExpenseRow());
+  loadSavedTracks();
 });
