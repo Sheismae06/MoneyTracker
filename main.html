@@ -4,178 +4,215 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Money Tracker</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
+      font-family: 'Poppins', sans-serif;
       margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #f5f5f5;
+      background-color: #f9f9f9;
       color: #333;
     }
     nav {
-      background-color: #333;
+      background-color: #222;
       color: white;
-      padding: 15px 20px;
-      text-align: center;
-      font-size: 18px;
-      font-weight: bold;
+      padding: 12px 20px;
+      font-weight: 500;
     }
     .container {
-      max-width: 600px;
-      margin: 30px auto;
       padding: 20px;
-      background: white;
-      border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      max-width: 800px;
+      margin: auto;
     }
-    h1 {
+    h1.title {
       text-align: center;
-      margin-bottom: 10px;
-      color: #222;
-    }
-    .date-picker {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 20px;
-    }
-    input[type="date"] {
-      padding: 8px 12px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 16px;
+      font-size: 2rem;
+      color: #a98600;
+      margin-top: 20px;
     }
     label {
-      display: block;
       margin-top: 15px;
-      font-weight: 600;
+      display: block;
     }
-    input[type="text"],
-    input[type="number"] {
+    input, select {
+      padding: 8px;
       width: 100%;
-      padding: 10px;
       margin-top: 5px;
+      border-radius: 4px;
       border: 1px solid #ccc;
-      border-radius: 6px;
+    }
+    .row {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .row input {
+      flex: 1;
     }
     button {
-      margin-top: 20px;
-      padding: 12px;
-      background-color: #333;
+      background-color: #a98600;
       color: white;
       border: none;
-      border-radius: 8px;
-      font-size: 16px;
+      border-radius: 4px;
+      padding: 10px;
+      margin-top: 10px;
       cursor: pointer;
-      width: 100%;
     }
-    button:hover {
-      background-color: #555;
-    }
-    #confirmation {
-      text-align: center;
+    .summary {
       margin-top: 20px;
-      color: green;
-      font-weight: bold;
-      display: none;
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.05);
+    }
+    canvas {
+      margin-top: 20px;
+    }
+    .footer {
+      text-align: center;
+      font-size: 0.8rem;
+      color: #777;
+      margin-top: 30px;
     }
   </style>
 </head>
 <body>
 
-  <nav>Money Tracker</nav>
+  <nav>Menu | Settings</nav>
 
   <div class="container">
-    <h1>Track Your Spending</h1>
+    <h1 class="title">Money Tracker</h1>
 
-    <div class="date-picker">
-      <input type="date" id="trackDate" />
+    <label>Cutoff 1</label>
+    <input type="number" id="cutoff1" oninput="calculateTotal()" />
+
+    <label>Cutoff 2</label>
+    <input type="number" id="cutoff2" oninput="calculateTotal()" />
+
+    <label>Total Salary</label>
+    <input type="number" id="totalSalary" readonly />
+
+    <label>Select Date</label>
+    <div class="row">
+      <select id="year"></select>
+      <select id="month"></select>
+      <select id="day"></select>
     </div>
 
-    <label for="cutoff1">Cutoff 1</label>
-    <input type="number" id="cutoff1" placeholder="Enter amount" />
+    <h3 style="margin-top: 20px;">Daily Expenses</h3>
+    <div id="expenses"></div>
+    <button onclick="addExpense()">Add More</button>
 
-    <label for="cutoff2">Cutoff 2</label>
-    <input type="number" id="cutoff2" placeholder="Enter amount" />
+    <div class="summary">
+      <p>Total Expense: <strong id="totalExpense">0</strong></p>
+      <p>Balance: <strong id="balance">0</strong></p>
+    </div>
 
-    <label for="allowance">Allowance</label>
-    <input type="number" id="allowance" placeholder="Enter amount" />
+    <canvas id="pieChart" height="200"></canvas>
 
-    <label for="notes">Notes</label>
-    <input type="text" id="notes" placeholder="Optional notes" />
+    <button onclick="saveDay()">Save</button>
+    <button onclick="loadDay()">Edit</button>
+    <button onclick="deleteDay()">Delete</button>
 
-    <button onclick="saveTrack()">Save</button>
-
-    <div id="confirmation">Your track for today was successfully saved.</div>
+    <div class="footer">Owned by Mae</div>
   </div>
 
   <script>
-    const dateInput = document.getElementById('trackDate');
-    const confirmation = document.getElementById('confirmation');
-
-    const fields = {
-      cutoff1: document.getElementById('cutoff1'),
-      cutoff2: document.getElementById('cutoff2'),
-      allowance: document.getElementById('allowance'),
-      notes: document.getElementById('notes'),
-    };
-
-    function getKey(date) {
-      return `track-${date}`;
+    // Populate year, month, day
+    for(let y=2025; y<=3000; y++) {
+      year.innerHTML += `<option>${y}</option>`;
+    }
+    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    months.forEach((m,i) => month.innerHTML += `<option value='${i}'>${m}</option>`);
+    for(let d=1; d<=31; d++) {
+      day.innerHTML += `<option>${d}</option>`;
     }
 
-    function saveTrack() {
-      const date = dateInput.value;
-      if (!date) {
-        alert('Please select a date first.');
-        return;
-      }
-
-      const data = {
-        cutoff1: fields.cutoff1.value,
-        cutoff2: fields.cutoff2.value,
-        allowance: fields.allowance.value,
-        notes: fields.notes.value,
-      };
-
-      localStorage.setItem(getKey(date), JSON.stringify(data));
-
-      confirmation.style.display = 'block';
-      setTimeout(() => {
-        confirmation.style.display = 'none';
-      }, 3000);
-
-      // Reset fields
-      for (let key in fields) {
-        fields[key].value = '';
-      }
+    function calculateTotal() {
+      let c1 = parseFloat(cutoff1.value) || 0;
+      let c2 = parseFloat(cutoff2.value) || 0;
+      totalSalary.value = c1 + c2;
+      updateSummary();
     }
 
-    function loadTrack(date) {
-      const data = localStorage.getItem(getKey(date));
-      if (data) {
-        const parsed = JSON.parse(data);
-        fields.cutoff1.value = parsed.cutoff1 || '';
-        fields.cutoff2.value = parsed.cutoff2 || '';
-        fields.allowance.value = parsed.allowance || '';
-        fields.notes.value = parsed.notes || '';
-      } else {
-        for (let key in fields) {
-          fields[key].value = '';
-        }
-      }
+    function addExpense(desc = '', amt = '') {
+      let div = document.createElement('div');
+      div.className = 'row';
+      div.innerHTML = `
+        <input type="text" placeholder="Description" value="${desc}" oninput="updateSummary()" />
+        <input type="number" placeholder="Amount" value="${amt}" oninput="updateSummary()" />
+      `;
+      document.getElementById('expenses').appendChild(div);
     }
 
-    dateInput.addEventListener('change', () => {
-      const selected = dateInput.value;
-      if (selected) {
-        loadTrack(selected);
+    function updateSummary() {
+      let salary = parseFloat(totalSalary.value) || 0;
+      let totalExp = 0;
+      document.querySelectorAll('#expenses .row input[type=number]').forEach(input => {
+        totalExp += parseFloat(input.value) || 0;
+      });
+      document.getElementById('totalExpense').innerText = totalExp.toFixed(2);
+      document.getElementById('balance').innerText = (salary - totalExp).toFixed(2);
+      updateChart(totalExp, salary - totalExp);
+    }
+
+    // Chart
+    const ctx = document.getElementById('pieChart').getContext('2d');
+    const pieChart = new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: ['Expenses', 'Balance'],
+        datasets: [{
+          data: [0, 0],
+          backgroundColor: ['#ff6384', '#36a2eb']
+        }]
       }
     });
 
-    // Default to today
-    const today = new Date().toISOString().split('T')[0];
-    dateInput.value = today;
-    loadTrack(today);
-  </script>
+    function updateChart(exp, bal) {
+      pieChart.data.datasets[0].data = [exp, bal];
+      pieChart.update();
+    }
 
+    function getKey() {
+      return `${year.value}-${month.value}-${day.value}`;
+    }
+
+    function saveDay() {
+      const key = getKey();
+      const expenses = [];
+      document.querySelectorAll('#expenses .row').forEach(row => {
+        const [desc, amt] = row.querySelectorAll('input');
+        expenses.push({desc: desc.value, amt: amt.value});
+      });
+      const data = {
+        cutoff1: cutoff1.value,
+        cutoff2: cutoff2.value,
+        expenses: expenses
+      };
+      localStorage.setItem(key, JSON.stringify(data));
+      alert('Saved!');
+    }
+
+    function loadDay() {
+      const key = getKey();
+      const data = JSON.parse(localStorage.getItem(key));
+      if (!data) return alert('No data found');
+      cutoff1.value = data.cutoff1;
+      cutoff2.value = data.cutoff2;
+      calculateTotal();
+      expenses.innerHTML = '';
+      data.expenses.forEach(e => addExpense(e.desc, e.amt));
+      updateSummary();
+    }
+
+    function deleteDay() {
+      const key = getKey();
+      localStorage.removeItem(key);
+      alert('Deleted');
+    }
+
+    // Init
+    addExpense();
+  </script>
 </body>
 </html>
