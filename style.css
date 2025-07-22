@@ -1,170 +1,51 @@
-/* Reset */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+/* style.css */
 
-body {
-  font-family: 'Segoe UI', sans-serif;
-  background-color: #111;
-  color: #fff;
-  line-height: 1.6;
-  padding-bottom: 100px;
-}
+/* Reset and base */
 
-/* Navbar */
-.navbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background-color: #222;
-  padding: 0.4rem 1rem;
-  position: fixed;
-  width: 100%;
-  top: 0;
-  z-index: 100;
-}
+{ margin: 0; padding: 0; box-sizing: border-box; }
 
-.navbar-brand {
-  font-size: 1.1rem;
-  color: gold;
-  font-weight: 600;
-}
 
-.music-toggle {
-  width: 28px;
-  height: 28px;
-  cursor: pointer;
-}
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #111; color: #f9f9f9; padding-top: 60px; }
 
-.music-toggle svg {
-  width: 100%;
-  height: 100%;
-  fill: none;
-}
+/* Navbar */ nav { position: fixed; top: 0; width: 100%; background-color: #1f1f1f; display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; z-index: 1000; box-shadow: 0 2px 4px rgba(0,0,0,0.5); }
 
-/* Header */
-.header {
-  margin-top: 60px;
-  text-align: center;
-  padding: 1rem;
-}
+nav .title { font-size: 18px; font-weight: bold; color: gold; }
 
-.header h1 {
-  font-size: 2rem;
-  color: gold;
-}
+nav .music-toggle { background: none; border: none; cursor: pointer; }
 
-.subtitle {
-  font-size: 1rem;
-  color: #ccc;
-}
+nav .music-toggle svg { width: 24px; height: 24px; fill: white; transition: transform 0.3s ease; }
 
-/* Tracker Form */
-.tracker {
-  padding: 1.2rem;
-  max-width: 500px;
-  margin: auto;
-}
+nav .music-toggle.playing svg { fill: gold; animation: pulse 1s infinite; }
 
-.form-group label {
-  display: block;
-  margin-top: 1rem;
-  color: #eee;
-}
+@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
 
-.form-group input,
-.form-group select {
-  width: 100%;
-  padding: 0.4rem;
-  margin-top: 0.3rem;
-  background-color: #222;
-  border: 1px solid #444;
-  color: #fff;
-  border-radius: 4px;
-}
+.container { max-width: 900px; margin: auto; padding: 20px; background-color: #1a1a1a; border-radius: 12px; box-shadow: 0 0 10px rgba(255, 215, 0, 0.2); animation: fadeIn 0.8s ease-in; }
 
-button {
-  margin-top: 1rem;
-  width: 100%;
-  padding: 0.5rem;
-  background-color: gold;
-  color: #111;
-  border: none;
-  border-radius: 4px;
-  font-weight: bold;
-  cursor: pointer;
-}
+@keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-button:hover {
-  background-color: #e6c200;
-}
+h2 { text-align: center; margin-bottom: 20px; font-size: 26px; color: gold; }
 
-/* Table Section */
-.table-section {
-  padding: 1rem;
-  max-width: 800px;
-  margin: auto;
-}
+select, input[type="number"], input[type="text"] { padding: 8px; margin: 5px; border: 1px solid #ccc; border-radius: 6px; background-color: #2a2a2a; color: white; }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 1rem;
-}
+button { padding: 8px 14px; margin: 5px; background-color: gold; border: none; border-radius: 6px; cursor: pointer; color: black; transition: background 0.3s ease; }
 
-th,
-td {
-  border: 1px solid #333;
-  padding: 0.5rem;
-  text-align: center;
-}
+button:hover { background-color: #f5c518; }
 
-th {
-  background-color: #333;
-  color: gold;
-}
+.entry-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
 
-td {
-  background-color: #222;
-}
+.entry-row input[type="text"] { flex: 1; }
 
-/* Summary Section */
-.summary {
-  padding: 1rem;
-  max-width: 800px;
-  margin: auto;
-  text-align: center;
-}
+.entry-list { margin-top: 20px; }
 
-.summary h2 {
-  color: gold;
-  margin-bottom: 1rem;
-}
+.total-row { text-align: right; font-weight: bold; margin-top: 10px; color: gold; }
 
-/* Footer */
-footer {
-  text-align: center;
-  margin-top: 3rem;
-  color: #777;
-  font-size: 0.9rem;
-}
+.salary-info { margin-bottom: 20px; padding: 10px; background: #222; border-radius: 8px; border: 1px solid #333; }
 
-/* Responsive */
-@media (max-width: 600px) {
-  .tracker,
-  .table-section,
-  .summary {
-    padding: 0.8rem;
-  }
+.salary-info label { display: inline-block; width: 160px; font-weight: 600; }
 
-  .navbar {
-    flex-direction: row;
-    justify-content: space-between;
-  }
+.salary-info input { width: 150px; }
 
-  .navbar-brand {
-    font-size: 1rem;
-  }
-}
+canvas { background-color: #fff; border-radius: 12px; margin-top: 30px; }
+
+footer { text-align: center; margin-top: 40px; font-size: 12px; color: #777; }
+
