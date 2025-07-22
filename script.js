@@ -1,93 +1,114 @@
-// Wait until DOM is fully loaded
-document.addEventListener("DOMContentLoaded", function () {
-  const form = document.getElementById("tracker-form");
-  const saveBtn = document.getElementById("save-btn");
-  const datePicker = document.getElementById("date-picker");
-  const confirmation = document.getElementById("confirmation");
-  const exportBtn = document.getElementById("export-btn");
+let data = JSON.parse(localStorage.getItem('expenseData')) || {};
+let currentDate = getCurrentDate();
 
-  // Load saved track based on selected date
-  datePicker.addEventListener("change", function () {
-    const selectedDate = this.value;
-    loadTrackForDate(selectedDate);
+document.getElementById("currentDate").textContent = currentDate;
+loadDataForDate(currentDate);
+
+function getCurrentDate() {
+  return new Date().toISOString().split("T")[0];
+}
+
+function addExpenseRow(description = "", amount = "") {
+  const entry = document.createElement("div");
+  entry.className = "expense-entry";
+
+  entry.innerHTML = `
+    <input type="text" placeholder="Description" class="desc" value="${description}" />
+    <input type="number" placeholder="Amount" class="amt" value="${amount}" />
+    <button class="remove-btn" onclick="removeEntry(this)">✕</button>
+  `;
+
+  document.getElementById("expenseList").appendChild(entry);
+  updateTotal();
+}
+
+function removeEntry(btn) {
+  btn.parentElement.remove();
+  updateTotal();
+}
+
+function updateTotal() {
+  const amounts = document.querySelectorAll(".amt");
+  let total = 0;
+  amounts.forEach(input => {
+    total += parseFloat(input.value) || 0;
   });
+  document.getElementById("totalAmount").textContent = "PHP " + total.toFixed(2);
+}
 
-  // On Save
-  saveBtn.addEventListener("click", function () {
-    const currentDate = new Date().toISOString().split("T")[0];
-    const data = getFormData();
-    if (Object.values(data).some(value => value !== "")) {
-      localStorage.setItem(`track-${currentDate}`, JSON.stringify(data));
-      showConfirmation("Your track today was successfully saved.");
-      form.reset();
-    } else {
-      showConfirmation("Please fill in at least one field before saving.");
-    }
-  });
+document.getElementById("addMore").addEventListener("click", () => {
+  addExpenseRow();
+});
 
-  // Export to file
-  exportBtn.addEventListener("click", function () {
-    let allData = "";
-    for (let key in localStorage) {
-      if (key.startsWith("track-")) {
-        const date = key.replace("track-", "");
-        const entry = JSON.parse(localStorage.getItem(key));
-        allData += `📅 ${date}\n`;
-        for (let field in entry) {
-          allData += `• ${capitalize(field)}: ${entry[field]}\n`;
-        }
-        allData += "\n";
-      }
-    }
+document.getElementById("expenseList").addEventListener("input", updateTotal);
 
-    const blob = new Blob([allData], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "MoneyTracker_History.txt";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  });
+document.getElementById("saveBtn").addEventListener("click", () => {
+  const descriptions = Array.from(document.querySelectorAll(".desc")).map(i => i.value);
+  const amounts = Array.from(document.querySelectorAll(".amt")).map(i => parseFloat(i.value) || 0);
+  const entries = descriptions.map((desc, i) => ({ desc, amt: amounts[i] }));
 
-  function getFormData() {
-    const formData = new FormData(form);
-    const data = {};
-    for (const [key, value] of formData.entries()) {
-      data[key] = value.trim();
-    }
-    return data;
+  data[currentDate] = entries;
+  localStorage.setItem("expenseData", JSON.stringify(data));
+
+  showConfirmation("Your track today was successfully saved.");
+  clearForm();
+  loadDataForDate(currentDate);
+});
+
+function showConfirmation(message) {
+  const msgBox = document.createElement("div");
+  msgBox.className = "confirmation";
+  msgBox.textContent = message;
+  document.body.appendChild(msgBox);
+  setTimeout(() => msgBox.remove(), 2500);
+}
+
+function clearForm() {
+  document.getElementById("expenseList").innerHTML = "";
+  updateTotal();
+}
+
+document.getElementById("datePicker").addEventListener("change", (e) => {
+  currentDate = e.target.value;
+  document.getElementById("currentDate").textContent = currentDate;
+  loadDataForDate(currentDate);
+});
+
+function loadDataForDate(date) {
+  clearForm();
+  if (data[date]) {
+    data[date].forEach(entry => {
+      addExpenseRow(entry.desc, entry.amt);
+    });
+  } else {
+    addExpenseRow();
   }
+}
 
-  function loadTrackForDate(date) {
-    const data = localStorage.getItem(`track-${date}`);
-    if (data) {
-      const parsed = JSON.parse(data);
-      for (const [key, value] of Object.entries(parsed)) {
-        const field = form.querySelector(`[name="${key}"]`);
-        if (field) field.value = value;
-      }
-      showConfirmation(`Loaded track from ${date}.`);
-    } else {
-      form.reset();
-      showConfirmation(`No record found for ${date}.`);
-    }
-  }
+document.getElementById("historyBtn").addEventListener("click", () => {
+  const history = Object.keys(data).sort().reverse().map(date => {
+    return `<li onclick="selectHistoryDate('${date}')">${date}</li>`;
+  }).join("");
+  document.getElementById("historyList").innerHTML = history;
+  document.getElementById("historyPopup").style.display = "block";
+});
 
-  function showConfirmation(message) {
-    confirmation.textContent = message;
-    confirmation.style.display = "block";
-    setTimeout(() => {
-      confirmation.style.display = "none";
-    }, 3000);
-  }
+function selectHistoryDate(date) {
+  currentDate = date;
+  document.getElementById("datePicker").value = date;
+  document.getElementById("currentDate").textContent = date;
+  loadDataForDate(date);
+  document.getElementById("historyPopup").style.display = "none";
+}
 
-  function capitalize(str) {
-    return str.charAt(0).toUpperCase() + str.slice(1);
-  }
+document.getElementById("exportBtn").addEventListener("click", () => {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "expense_data.json";
+  a.click();
+});
 
-  // Load today's track on page load
-  const today = new Date().toISOString().split("T")[0];
-  datePicker.value = today;
-  loadTrackForDate(today);
+document.getElementById("clearHistoryPopup").addEventListener("click", () => {
+  document.getElementById("historyPopup").style.display = "none";
 });
