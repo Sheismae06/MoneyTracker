@@ -1,24 +1,29 @@
-// Elements
-const bgMusic = document.getElementById("bg-music");
-const musicToggle = document.getElementById("musicToggle");
-const musicIcon = document.getElementById("musicIcon");
-const tableBody = document.querySelector("#entries-table tbody");
-const totalsDiv = document.getElementById("totals");
+// Music toggle
+const music = document.getElementById("bg-music");
+const toggle = document.getElementById("musicToggle");
+const icon = document.getElementById("musicIcon");
 
-// Music Toggle
-musicToggle.addEventListener("click", () => {
-  if (bgMusic.paused) {
-    bgMusic.play();
-    musicIcon.style.opacity = "1";
-    musicIcon.style.filter = "drop-shadow(0 0 5px gold)";
-  } else {
-    bgMusic.pause();
-    musicIcon.style.opacity = "0.5";
-    musicIcon.style.filter = "none";
-  }
+let musicPlaying = false;
+
+toggle.addEventListener("click", () => {
+  musicPlaying ? music.pause() : music.play();
+  musicPlaying = !musicPlaying;
+  updateMusicIcon();
 });
 
-// Save Entry
+function updateMusicIcon() {
+  if (musicPlaying) {
+    icon.style.opacity = "1";
+    icon.querySelector("path").setAttribute("stroke", "gold");
+  } else {
+    icon.style.opacity = "0.6";
+    icon.querySelector("path").setAttribute("stroke", "white");
+  }
+}
+
+// Save entry
+let entries = JSON.parse(localStorage.getItem("entries")) || [];
+
 function saveEntry() {
   const date = document.getElementById("entry-date").value;
   const amount = parseFloat(document.getElementById("entry-amount").value);
@@ -26,56 +31,102 @@ function saveEntry() {
   const note = document.getElementById("entry-note").value;
 
   if (!date || isNaN(amount)) {
-    alert("Please fill in both date and amount.");
+    alert("Please fill in all fields correctly.");
     return;
   }
 
-  const entry = { date, amount, type, note };
-  const entries = JSON.parse(localStorage.getItem("moneyEntries")) || [];
+  const entry = {
+    id: Date.now(),
+    date,
+    amount,
+    type,
+    note
+  };
+
   entries.push(entry);
-  localStorage.setItem("moneyEntries", JSON.stringify(entries));
+  localStorage.setItem("entries", JSON.stringify(entries));
   renderEntries();
+  updateSummary();
 }
 
-// Render Entries
+// Render entries
 function renderEntries() {
-  const entries = JSON.parse(localStorage.getItem("moneyEntries")) || [];
+  const tableBody = document.querySelector("#entries-table tbody");
   tableBody.innerHTML = "";
 
-  let totalIncome = 0;
-  let totalExpense = 0;
-
-  entries.forEach((entry, index) => {
+  entries.forEach(entry => {
     const row = document.createElement("tr");
+
     row.innerHTML = `
       <td>${entry.date}</td>
       <td>₱${entry.amount.toFixed(2)}</td>
       <td>${entry.type}</td>
-      <td>${entry.note}</td>
-      <td><button onclick="deleteEntry(${index})">🗑️</button></td>
+      <td>${entry.note || ""}</td>
+      <td>
+        <button onclick="deleteEntry(${entry.id})">Delete</button>
+      </td>
     `;
+
     tableBody.appendChild(row);
-
-    if (entry.type === "income") totalIncome += entry.amount;
-    else totalExpense += entry.amount;
   });
-
-  const balance = totalIncome - totalExpense;
-
-  totalsDiv.innerHTML = `
-    <p><strong>Total Income:</strong> ₱${totalIncome.toFixed(2)}</p>
-    <p><strong>Total Expenses:</strong> ₱${totalExpense.toFixed(2)}</p>
-    <p><strong>Remaining Balance:</strong> ₱${balance.toFixed(2)}</p>
-  `;
 }
 
-// Delete Entry
-function deleteEntry(index) {
-  const entries = JSON.parse(localStorage.getItem("moneyEntries")) || [];
-  entries.splice(index, 1);
-  localStorage.setItem("moneyEntries", JSON.stringify(entries));
+// Delete entry
+function deleteEntry(id) {
+  entries = entries.filter(e => e.id !== id);
+  localStorage.setItem("entries", JSON.stringify(entries));
   renderEntries();
+  updateSummary();
 }
 
-// Auto-load entries on page load
-window.addEventListener("DOMContentLoaded", renderEntries);
+// Update totals and chart
+function updateSummary() {
+  const income = entries
+    .filter(e => e.type === "income")
+    .reduce((sum, e) => sum + e.amount, 0);
+  const expense = entries
+    .filter(e => e.type === "expense")
+    .reduce((sum, e) => sum + e.amount, 0);
+
+  document.getElementById("totals").innerHTML = `
+    <p><strong>Total Income:</strong> ₱${income.toFixed(2)}</p>
+    <p><strong>Total Expense:</strong> ₱${expense.toFixed(2)}</p>
+    <p><strong>Balance:</strong> ₱${(income - expense).toFixed(2)}</p>
+  `;
+
+  updateChart(income, expense);
+}
+
+// Chart setup using Chart.js
+let chart;
+
+function updateChart(income, expense) {
+  const ctx = document.getElementById("summary-chart").getContext("2d");
+
+  if (chart) {
+    chart.destroy();
+  }
+
+  chart = new Chart(ctx, {
+    type: "doughnut",
+    data: {
+      labels: ["Income", "Expense"],
+      datasets: [{
+        data: [income, expense],
+        backgroundColor: ["#ffd700", "#ff4d4d"]
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          position: "bottom"
+        }
+      }
+    }
+  });
+}
+
+// Initialize
+renderEntries();
+updateSummary();
