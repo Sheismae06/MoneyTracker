@@ -10,10 +10,10 @@
   <nav class="navbar">💰 Daily Expense Tracker</nav>
 
   <main class="container">
-    <div class="date-picker">
-      <label for="date">Select Date:</label>
+    <section class="date-section">
+      <label for="date">📅 Select Date:</label>
       <input type="date" id="date" />
-    </div>
+    </section>
 
     <form id="expense-form">
       <div id="expense-fields">
@@ -22,13 +22,15 @@
           <input type="number" class="amount" placeholder="Amount" required />
         </div>
       </div>
-      <button type="button" id="add-more">➕ Add More</button>
+      <div class="button-row">
+        <button type="button" id="add-more">➕ Add More</button>
+        <button type="submit" class="save-btn">💾 Save</button>
+      </div>
       <div class="total-display">Total: PHP <span id="total">0.00</span></div>
-      <button type="submit" class="save-btn">💾 Save</button>
     </form>
 
     <section id="saved-tracks">
-      <h2>📅 Saved Expenses</h2>
+      <h2>📌 Saved Expenses</h2>
       <div id="track-list"></div>
     </section>
   </main>
