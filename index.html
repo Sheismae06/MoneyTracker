@@ -1,37 +1,43 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
+<!DOCTYPE html><html lang="en"><head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Agape Aeterna Budget Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Money Tracker</title>
   <link rel="stylesheet" href="style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body>
-  <main class="p-6 max-w-xl mx-auto text-white">
-    <h1 class="text-2xl font-bold text-center mb-4 text-gold">Budget Tracker</h1>
+  <script src="chart.umd.js"></script>
+</head><body>
+  <div class="container">
+    <h1>Money Tracker</h1><div class="form-section">
+  <label for="date">Date:</label>
+  <input type="date" id="date" />
 
-    <!-- Expense Form -->
-    <form id="expenseForm" class="space-y-4 mb-8">
-      <input type="number" id="amount" placeholder="Enter amount" required class="w-full p-2 rounded text-black"/>
-      <select id="category" required class="w-full p-2 rounded text-black">
-        <option value="">Select category</option>
-        <option value="Food">Food</option>
-        <option value="Bills">Bills</option>
-        <option value="Transportation">Transportation</option>
-        <option value="Others">Others</option>
-      </select>
-      <button type="submit" class="w-full bg-gold text-black py-2 rounded font-bold hover:opacity-90 transition">
-        Add Expense
-      </button>
-    </form>
+  <label for="salary">Salary:</label>
+  <input type="number" id="salary" />
 
-    <!-- Pie Chart -->
-    <div class="bg-dark p-4 rounded-xl shadow-md">
-      <canvas id="expenseChart" width="300" height="300"></canvas>
-    </div>
-  </main>
+  <label for="expenses">Expenses:</label>
+  <input type="number" id="expenses" />
 
-  <script src="script.js"></script>
-</body>
-</html>
+  <button onclick="addEntry()">Add Entry</button>
+</div>
+
+<div class="summary">
+  <p><strong>Total Salary:</strong> <span id="totalSalary">₱0.00</span></p>
+  <p><strong>Total Expenses:</strong> <span id="totalExpenses">₱0.00</span></p>
+  <p><strong>Total Savings:</strong> <span id="totalSavings">₱0.00</span></p>
+</div>
+
+<table id="entryTable">
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Salary</th>
+      <th>Expenses</th>
+      <th>Savings</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<canvas id="pieChart"></canvas>
+
+  </div>  <script src="script.js"></script></body></html>
