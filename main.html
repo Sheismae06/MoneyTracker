@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -14,9 +13,7 @@
     }
     nav {
       background-color: #222;
-      color: white;
       padding: 12px 20px;
-      font-weight: 500;
     }
     .container {
       padding: 20px;
@@ -27,7 +24,7 @@
       text-align: center;
       font-size: 2rem;
       color: #a98600;
-      margin-top: 20px;
+      margin: 10px 0;
     }
     label {
       margin-top: 15px;
@@ -75,48 +72,45 @@
     }
   </style>
 </head>
-<body>
+<body>  <nav></nav>  <div class="container">
+    <!-- Calendar for viewing saved days -->
+    <label for="datePicker">📅 View Previous Track</label>
+    <input type="date" id="datePicker" onchange="loadByDatePicker()" /><h1 class="title">Money Tracker</h1>
 
-  <nav>Menu | Settings</nav>
+<label>Cutoff 1</label>
+<input type="number" id="cutoff1" oninput="calculateTotal()" />
 
-  <div class="container">
-    <h1 class="title">Money Tracker</h1>
+<label>Cutoff 2</label>
+<input type="number" id="cutoff2" oninput="calculateTotal()" />
 
-    <label>Cutoff 1</label>
-    <input type="number" id="cutoff1" oninput="calculateTotal()" />
+<label>Total Salary</label>
+<input type="number" id="totalSalary" readonly />
 
-    <label>Cutoff 2</label>
-    <input type="number" id="cutoff2" oninput="calculateTotal()" />
+<label>Select Date</label>
+<div class="row">
+  <select id="year"></select>
+  <select id="month"></select>
+  <select id="day"></select>
+</div>
 
-    <label>Total Salary</label>
-    <input type="number" id="totalSalary" readonly />
+<h3 style="margin-top: 20px;">Daily Expenses</h3>
+<div id="expenses"></div>
+<button onclick="addExpense()">Add More</button>
 
-    <label>Select Date</label>
-    <div class="row">
-      <select id="year"></select>
-      <select id="month"></select>
-      <select id="day"></select>
-    </div>
+<div class="summary">
+  <p>Total Expense: <strong id="totalExpense">0</strong></p>
+  <p>Balance: <strong id="balance">0</strong></p>
+</div>
 
-    <h3 style="margin-top: 20px;">Daily Expenses</h3>
-    <div id="expenses"></div>
-    <button onclick="addExpense()">Add More</button>
+<canvas id="pieChart" height="200"></canvas>
 
-    <div class="summary">
-      <p>Total Expense: <strong id="totalExpense">0</strong></p>
-      <p>Balance: <strong id="balance">0</strong></p>
-    </div>
+<button onclick="saveDay()">Save</button>
+<button onclick="loadDay()">Edit</button>
+<button onclick="deleteDay()">Delete</button>
 
-    <canvas id="pieChart" height="200"></canvas>
+<div class="footer">Owned by Mae</div>
 
-    <button onclick="saveDay()">Save</button>
-    <button onclick="loadDay()">Edit</button>
-    <button onclick="deleteDay()">Delete</button>
-
-    <div class="footer">Owned by Mae</div>
-  </div>
-
-  <script>
+  </div>  <script>
     // Populate year, month, day
     for(let y=2025; y<=3000; y++) {
       year.innerHTML += `<option>${y}</option>`;
@@ -211,8 +205,22 @@
       alert('Deleted');
     }
 
+    function loadByDatePicker() {
+      const picker = document.getElementById('datePicker');
+      const date = new Date(picker.value);
+      if (isNaN(date)) return;
+      const key = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+      const data = JSON.parse(localStorage.getItem(key));
+      if (!data) return alert('No data saved on that date');
+      cutoff1.value = data.cutoff1;
+      cutoff2.value = data.cutoff2;
+      calculateTotal();
+      expenses.innerHTML = '';
+      data.expenses.forEach(e => addExpense(e.desc, e.amt));
+      updateSummary();
+    }
+
     // Init
     addExpense();
-  </script>
-</body>
+  </script></body>
 </html>
