@@ -1,180 +1,181 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Money Tracker</title>
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       margin: 0;
-      background-color: #111;
-      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f5f5f5;
+      color: #333;
     }
-    header {
-      background-color: #000;
-      padding: 20px;
+    nav {
+      background-color: #333;
+      color: white;
+      padding: 15px 20px;
       text-align: center;
-      font-size: 24px;
+      font-size: 18px;
       font-weight: bold;
-      color: gold;
-    }
-    .calendar {
-      display: flex;
-      justify-content: center;
-      padding: 10px;
-      background-color: #1a1a1a;
-    }
-    .calendar input {
-      padding: 5px;
-      font-size: 16px;
-      background-color: #222;
-      color: #fff;
-      border: 1px solid #444;
-      border-radius: 5px;
     }
     .container {
-      padding: 20px;
       max-width: 600px;
-      margin: auto;
+      margin: 30px auto;
+      padding: 20px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 10px;
+      color: #222;
+    }
+    .date-picker {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    input[type="date"] {
+      padding: 8px 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 16px;
     }
     label {
       display: block;
-      margin-top: 10px;
+      margin-top: 15px;
+      font-weight: 600;
     }
+    input[type="text"],
     input[type="number"] {
       width: 100%;
-      padding: 8px;
-      background-color: #222;
-      border: 1px solid #555;
-      color: #fff;
-      border-radius: 4px;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
     }
     button {
-      margin-top: 15px;
-      padding: 10px;
-      background-color: gold;
-      color: #000;
-      font-weight: bold;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    #chart {
       margin-top: 20px;
+      padding: 12px;
+      background-color: #333;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      width: 100%;
     }
-    .footer {
-      text-align: center;
-      padding: 20px;
-      font-size: 14px;
-      color: #888;
+    button:hover {
+      background-color: #555;
     }
     #confirmation {
-      display: none;
       text-align: center;
-      color: lightgreen;
       margin-top: 20px;
+      color: green;
+      font-weight: bold;
+      display: none;
     }
   </style>
 </head>
 <body>
-  <header>Money Tracker</header>
-  <div class="calendar">
-    <input type="date" id="trackDate" min="2025-01-01" max="3000-12-31" />
-  </div>
+
+  <nav>Money Tracker</nav>
+
   <div class="container">
-    <label>Salary</label>
-    <input type="number" id="salary" /><label>Expenses</label>
-<input type="number" id="expenses" />
+    <h1>Track Your Spending</h1>
 
-<label>Savings</label>
-<input type="number" id="savings" />
+    <div class="date-picker">
+      <input type="date" id="trackDate" />
+    </div>
 
-<label>Remaining Balance</label>
-<input type="number" id="balance" disabled />
+    <label for="cutoff1">Cutoff 1</label>
+    <input type="number" id="cutoff1" placeholder="Enter amount" />
 
-<button onclick="saveTrack()">Save</button>
-<div id="confirmation">Your track today was successfully saved.</div>
-<div id="chart"></div>
+    <label for="cutoff2">Cutoff 2</label>
+    <input type="number" id="cutoff2" placeholder="Enter amount" />
 
+    <label for="allowance">Allowance</label>
+    <input type="number" id="allowance" placeholder="Enter amount" />
+
+    <label for="notes">Notes</label>
+    <input type="text" id="notes" placeholder="Optional notes" />
+
+    <button onclick="saveTrack()">Save</button>
+
+    <div id="confirmation">Your track for today was successfully saved.</div>
   </div>
-  <div class="footer">Owned by Mae</div>  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>  <script>
-    const salary = document.getElementById('salary');
-    const expenses = document.getElementById('expenses');
-    const savings = document.getElementById('savings');
-    const balance = document.getElementById('balance');
-    const chartCanvas = document.createElement('canvas');
-    document.getElementById('chart').appendChild(chartCanvas);
-    const ctx = chartCanvas.getContext('2d');
 
-    function updateBalance() {
-      const sal = Number(salary.value);
-      const exp = Number(expenses.value);
-      const sav = Number(savings.value);
-      const bal = sal - exp - sav;
-      balance.value = bal;
-      updateChart(exp, sav, bal);
-    }
+  <script>
+    const dateInput = document.getElementById('trackDate');
+    const confirmation = document.getElementById('confirmation');
 
-    salary.addEventListener('input', updateBalance);
-    expenses.addEventListener('input', updateBalance);
-    savings.addEventListener('input', updateBalance);
+    const fields = {
+      cutoff1: document.getElementById('cutoff1'),
+      cutoff2: document.getElementById('cutoff2'),
+      allowance: document.getElementById('allowance'),
+      notes: document.getElementById('notes'),
+    };
 
-    let pieChart;
-    function updateChart(exp, sav, bal) {
-      const data = [exp, sav, bal < 0 ? 0 : bal];
-      if (pieChart) pieChart.destroy();
-      pieChart = new Chart(ctx, {
-        type: 'pie',
-        data: {
-          labels: ['Expenses', 'Savings', 'Balance'],
-          datasets: [{
-            data,
-            backgroundColor: ['#e74c3c', '#f1c40f', '#2ecc71'],
-          }]
-        },
-        options: { responsive: true }
-      });
+    function getKey(date) {
+      return `track-${date}`;
     }
 
     function saveTrack() {
-      const date = document.getElementById('trackDate').value;
-      if (!date) return alert('Please select a date first.');
+      const date = dateInput.value;
+      if (!date) {
+        alert('Please select a date first.');
+        return;
+      }
 
       const data = {
-        salary: salary.value,
-        expenses: expenses.value,
-        savings: savings.value,
-        balance: balance.value
+        cutoff1: fields.cutoff1.value,
+        cutoff2: fields.cutoff2.value,
+        allowance: fields.allowance.value,
+        notes: fields.notes.value,
       };
 
-      localStorage.setItem(date, JSON.stringify(data));
-      document.getElementById('confirmation').style.display = 'block';
+      localStorage.setItem(getKey(date), JSON.stringify(data));
+
+      confirmation.style.display = 'block';
       setTimeout(() => {
-        document.getElementById('confirmation').style.display = 'none';
-        salary.value = '';
-        expenses.value = '';
-        savings.value = '';
-        balance.value = '';
-        updateChart(0, 0, 0);
-      }, 2000);
+        confirmation.style.display = 'none';
+      }, 3000);
+
+      // Reset fields
+      for (let key in fields) {
+        fields[key].value = '';
+      }
     }
 
-    document.getElementById('trackDate').addEventListener('change', () => {
-      const date = document.getElementById('trackDate').value;
-      const data = JSON.parse(localStorage.getItem(date));
+    function loadTrack(date) {
+      const data = localStorage.getItem(getKey(date));
       if (data) {
-        salary.value = data.salary;
-        expenses.value = data.expenses;
-        savings.value = data.savings;
-        balance.value = data.balance;
-        updateChart(Number(data.expenses), Number(data.savings), Number(data.balance));
+        const parsed = JSON.parse(data);
+        fields.cutoff1.value = parsed.cutoff1 || '';
+        fields.cutoff2.value = parsed.cutoff2 || '';
+        fields.allowance.value = parsed.allowance || '';
+        fields.notes.value = parsed.notes || '';
       } else {
-        salary.value = '';
-        expenses.value = '';
-        savings.value = '';
-        balance.value = '';
-        updateChart(0, 0, 0);
+        for (let key in fields) {
+          fields[key].value = '';
+        }
+      }
+    }
+
+    dateInput.addEventListener('change', () => {
+      const selected = dateInput.value;
+      if (selected) {
+        loadTrack(selected);
       }
     });
-  </script></body>
+
+    // Default to today
+    const today = new Date().toISOString().split('T')[0];
+    dateInput.value = today;
+    loadTrack(today);
+  </script>
+
+</body>
 </html>
