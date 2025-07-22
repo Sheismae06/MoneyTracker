@@ -2,52 +2,68 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Budget Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Money Tracker</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+
   <nav>
-    <div class="logo">Budget Tracker</div>
-    <div class="music-icon" id="musicToggle">
-      🎵
-    </div>
+    <span>Money Tracker</span>
   </nav>
 
-  <header>
-    <div class="salary-inputs">
-      <label>Cut-off 1 Salary: <input type="number" id="cutoff1" /></label>
-      <label>Cut-off 2 Salary: <input type="number" id="cutoff2" /></label>
-      <p>Total Salary: <span id="totalSalary">₱0</span></p>
-    </div>
-  </header>
+  <main>
+    <section class="salary-section">
+      <h2>Salary Input</h2>
+      <div class="salary-inputs">
+        <label>Cutoff 1: ₱ <input type="number" id="cutoff1" /></label>
+        <label>Cutoff 2: ₱ <input type="number" id="cutoff2" /></label>
+      </div>
+      <div class="total-salary">
+        Total Salary: ₱ <span id="total-salary">0.00</span>
+      </div>
+    </section>
 
-  <section class="selector">
-    <select id="monthSelect"></select>
-    <select id="yearSelect"></select>
-    <select id="daySelect"></select>
-  </section>
+    <section class="date-picker">
+      <h2>Select Date</h2>
+      <div class="date-selectors">
+        <select id="year"></select>
+        <select id="month"></select>
+        <select id="day"></select>
+      </div>
+    </section>
 
-  <section class="entries">
-    <div class="entry">
-      <input type="text" placeholder="Label (e.g., Fare)" class="label-input" />
-      <input type="number" placeholder="Amount" class="amount-input" />
-    </div>
-    <button onclick="addEntry()">Add Entry</button>
-    <div class="total">Daily Total: <span id="dailyTotal">₱0</span></div>
-    <button onclick="saveDay()">Save Day</button>
-  </section>
+    <section class="expenses-section">
+      <h2>Daily Expenses</h2>
+      <div id="expenses-list">
+        <div class="expense-row">
+          <input type="text" placeholder="Description" class="desc-input" />
+          ₱ <input type="number" class="amount-input" />
+        </div>
+      </div>
+      <button id="add-expense">+ Add More</button>
+      <div class="totals">
+        Total Expense: ₱ <span id="total-expense">0.00</span><br>
+        Balance: ₱ <span id="balance">0.00</span>
+      </div>
+    </section>
 
-  <section class="history">
-    <h2>Daily Records</h2>
-    <div id="records"></div>
-  </section>
+    <section class="chart-section">
+      <h2>Expense Chart</h2>
+      <canvas id="expense-chart" width="300" height="300"></canvas>
+    </section>
 
-  <section class="chart-section">
-    <h2>Monthly Spending Graph</h2>
-    <canvas id="spendingChart"></canvas>
-    <p>Total Expenses: <span id="overallTotal">₱0</span></p>
-  </section>
+    <section class="save-section">
+      <button id="save-btn">💾 Save</button>
+      <button id="load-btn">📅 Load</button>
+      <button id="edit-btn">✏️ Edit</button>
+      <button id="delete-btn">🗑️ Delete</button>
+    </section>
+
+    <footer>
+      <small>Owned by Mae</small>
+    </footer>
+  </main>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="script.js"></script>
