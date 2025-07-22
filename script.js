@@ -1,29 +1,22 @@
-// Music toggle
-const music = document.getElementById("bg-music");
-const toggle = document.getElementById("musicToggle");
-const icon = document.getElementById("musicIcon");
+// 🎵 Music Toggle
+const musicToggle = document.getElementById("musicToggle");
+const musicIcon = document.getElementById("musicIcon");
+const bgMusic = document.getElementById("bg-music");
 
-let musicPlaying = false;
+let isPlaying = false;
 
-toggle.addEventListener("click", () => {
-  musicPlaying ? music.pause() : music.play();
-  musicPlaying = !musicPlaying;
-  updateMusicIcon();
+musicToggle.addEventListener("click", () => {
+  if (isPlaying) {
+    bgMusic.pause();
+    musicIcon.style.opacity = "0.5";
+  } else {
+    bgMusic.play();
+    musicIcon.style.opacity = "1";
+  }
+  isPlaying = !isPlaying;
 });
 
-function updateMusicIcon() {
-  if (musicPlaying) {
-    icon.style.opacity = "1";
-    icon.querySelector("path").setAttribute("stroke", "gold");
-  } else {
-    icon.style.opacity = "0.6";
-    icon.querySelector("path").setAttribute("stroke", "white");
-  }
-}
-
-// Save entry
-let entries = JSON.parse(localStorage.getItem("entries")) || [];
-
+// 💾 Save Entry
 function saveEntry() {
   const date = document.getElementById("entry-date").value;
   const amount = parseFloat(document.getElementById("entry-amount").value);
@@ -31,89 +24,108 @@ function saveEntry() {
   const note = document.getElementById("entry-note").value;
 
   if (!date || isNaN(amount)) {
-    alert("Please fill in all fields correctly.");
+    alert("Please enter a valid date and amount.");
     return;
   }
 
-  const entry = {
-    id: Date.now(),
-    date,
-    amount,
-    type,
-    note
-  };
-
+  const entry = { date, amount, type, note };
+  let entries = JSON.parse(localStorage.getItem("entries")) || [];
   entries.push(entry);
   localStorage.setItem("entries", JSON.stringify(entries));
+
   renderEntries();
-  updateSummary();
+  updateTotals();
+  renderChart();
+  clearForm();
 }
 
-// Render entries
+// 🧹 Clear Form
+function clearForm() {
+  document.getElementById("entry-date").value = "";
+  document.getElementById("entry-amount").value = "";
+  document.getElementById("entry-type").value = "income";
+  document.getElementById("entry-note").value = "";
+}
+
+// 🧾 Render Entries Table
 function renderEntries() {
-  const tableBody = document.querySelector("#entries-table tbody");
-  tableBody.innerHTML = "";
+  const tbody = document.querySelector("#entries-table tbody");
+  tbody.innerHTML = "";
 
-  entries.forEach(entry => {
-    const row = document.createElement("tr");
+  const entries = JSON.parse(localStorage.getItem("entries")) || [];
 
-    row.innerHTML = `
+  entries.forEach((entry, index) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
       <td>${entry.date}</td>
       <td>₱${entry.amount.toFixed(2)}</td>
-      <td>${entry.type}</td>
+      <td class="${entry.type}">${entry.type}</td>
       <td>${entry.note || ""}</td>
-      <td>
-        <button onclick="deleteEntry(${entry.id})">Delete</button>
-      </td>
+      <td><button onclick="deleteEntry(${index})">Delete</button></td>
     `;
-
-    tableBody.appendChild(row);
+    tbody.appendChild(tr);
   });
 }
 
-// Delete entry
-function deleteEntry(id) {
-  entries = entries.filter(e => e.id !== id);
+// ❌ Delete Entry
+function deleteEntry(index) {
+  let entries = JSON.parse(localStorage.getItem("entries")) || [];
+  entries.splice(index, 1);
   localStorage.setItem("entries", JSON.stringify(entries));
+
   renderEntries();
-  updateSummary();
+  updateTotals();
+  renderChart();
 }
 
-// Update totals and chart
-function updateSummary() {
-  const income = entries
-    .filter(e => e.type === "income")
-    .reduce((sum, e) => sum + e.amount, 0);
-  const expense = entries
-    .filter(e => e.type === "expense")
-    .reduce((sum, e) => sum + e.amount, 0);
+// 📊 Update Totals
+function updateTotals() {
+  const entries = JSON.parse(localStorage.getItem("entries")) || [];
+
+  let income = 0;
+  let expense = 0;
+
+  entries.forEach(entry => {
+    if (entry.type === "income") {
+      income += entry.amount;
+    } else {
+      expense += entry.amount;
+    }
+  });
+
+  const balance = income - expense;
 
   document.getElementById("totals").innerHTML = `
-    <p><strong>Total Income:</strong> ₱${income.toFixed(2)}</p>
-    <p><strong>Total Expense:</strong> ₱${expense.toFixed(2)}</p>
-    <p><strong>Balance:</strong> ₱${(income - expense).toFixed(2)}</p>
+    <p><strong>Income:</strong> ₱${income.toFixed(2)}</p>
+    <p><strong>Expenses:</strong> ₱${expense.toFixed(2)}</p>
+    <p><strong>Balance:</strong> ₱${balance.toFixed(2)}</p>
   `;
-
-  updateChart(income, expense);
 }
 
-// Chart setup using Chart.js
-let chart;
-
-function updateChart(income, expense) {
+// 📈 Render Chart
+function renderChart() {
   const ctx = document.getElementById("summary-chart").getContext("2d");
 
-  if (chart) {
-    chart.destroy();
+  const entries = JSON.parse(localStorage.getItem("entries")) || [];
+  let income = 0;
+  let expense = 0;
+
+  entries.forEach(entry => {
+    if (entry.type === "income") income += entry.amount;
+    else expense += entry.amount;
+  });
+
+  if (window.myChart) {
+    window.myChart.destroy();
   }
 
-  chart = new Chart(ctx, {
+  window.myChart = new Chart(ctx, {
     type: "doughnut",
     data: {
-      labels: ["Income", "Expense"],
+      labels: ["Income", "Expenses"],
       datasets: [{
         data: [income, expense],
-        backgroundColor: ["#ffd700", "#ff4d4d"]
+        backgroundColor: ["#4caf50", "#f44336"]
       }]
     },
     options: {
@@ -127,6 +139,9 @@ function updateChart(income, expense) {
   });
 }
 
-// Initialize
-renderEntries();
-updateSummary();
+// 🚀 Init
+window.addEventListener("DOMContentLoaded", () => {
+  renderEntries();
+  updateTotals();
+  renderChart();
+});
