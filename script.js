@@ -1,40 +1,110 @@
-// ✅ script.js — Updated with full filtering, edit/delete with confirmation, and total computation
+let trackData = JSON.parse(localStorage.getItem("trackData")) || [];
 
-// Get elements const trackForm = document.getElementById("trackForm"); const saveBtn = document.getElementById("saveBtn"); const trackDataDiv = document.getElementById("trackData"); const startDate = document.getElementById("startDate"); const endDate = document.getElementById("endDate"); const filterBtn = document.getElementById("filterBtn"); const totalDisplay = document.getElementById("totalDisplay");
+function saveTrack() {
+  const date = document.getElementById("date").value;
+  const description = document.getElementById("description").value;
+  const amount = parseFloat(document.getElementById("amount").value);
 
-// ✅ Save Data saveBtn.addEventListener("click", function (e) { e.preventDefault();
+  if (!date || !description || isNaN(amount)) {
+    alert("Please fill in all fields correctly.");
+    return;
+  }
 
-const date = document.getElementById("date").value; const description = document.getElementById("description").value; const amount = parseFloat(document.getElementById("amount").value);
+  trackData.push({ date, description, amount });
+  localStorage.setItem("trackData", JSON.stringify(trackData));
+  document.getElementById("trackForm").reset();
+  alert("Saved successfully!");
+}
 
-if (!date || !description || isNaN(amount)) { alert("Please fill in all fields correctly."); return; }
+function renderTable(data) {
+  const tableBody = document.getElementById("trackTableBody");
+  tableBody.innerHTML = "";
+  data.forEach((item, index) => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${item.date}</td>
+      <td>${item.description}</td>
+      <td>₱${item.amount.toFixed(2)}</td>
+      <td>
+        <button onclick="editTrack(${index})">Edit</button>
+        <button onclick="confirmDelete(${index})">Delete</button>
+      </td>
+    `;
+    tableBody.appendChild(row);
+  });
 
-const data = JSON.parse(localStorage.getItem("moneyData") || "{}");
+  const total = data.reduce((sum, item) => sum + item.amount, 0);
+  document.getElementById("filteredTotal").innerText =
+    data.length > 0
+      ? `Total Amount: ₱${total.toFixed(2)}`
+      : "No data found in selected range.";
+}
 
-if (!data[date]) { data[date] = []; }
+function filterData() {
+  const startDate = document.getElementById("startDate").value;
+  const endDate = document.getElementById("endDate").value;
+  const sortBy = document.getElementById("sortBy").value;
 
-data[date].push({ description, amount });
+  if (!startDate || !endDate) {
+    alert("Please select a start and end date.");
+    return;
+  }
 
-localStorage.setItem("moneyData", JSON.stringify(data)); alert("Saved successfully!"); trackForm.reset(); });
+  let filtered = trackData.filter(item => item.date >= startDate && item.date <= endDate);
 
-// ✅ Filter and Display Data filterBtn.addEventListener("click", function () { const start = startDate.value; const end = endDate.value; if (!start || !end) { alert("Please select both start and end dates."); return; }
+  switch (sortBy) {
+    case "dateAsc":
+      filtered.sort((a, b) => a.date.localeCompare(b.date));
+      break;
+    case "dateDesc":
+      filtered.sort((a, b) => b.date.localeCompare(a.date));
+      break;
+    case "amountAsc":
+      filtered.sort((a, b) => a.amount - b.amount);
+      break;
+    case "amountDesc":
+      filtered.sort((a, b) => b.amount - a.amount);
+      break;
+  }
 
-const data = JSON.parse(localStorage.getItem("moneyData") || "{}"); const displayItems = []; let totalAmount = 0;
+  renderTable(filtered);
+}
 
-const startD = new Date(start); const endD = new Date(end);
+function resetFilter() {
+  document.getElementById("startDate").value = "";
+  document.getElementById("endDate").value = "";
+  document.getElementById("sortBy").value = "";
+  renderTable(trackData);
+  document.getElementById("filteredTotal").innerText = "";
+}
 
-trackDataDiv.innerHTML = "";
+function confirmDelete(index) {
+  if (confirm("Are you sure you want to delete this entry?")) {
+    deleteTrack(index);
+  }
+}
 
-for (const date in data) { const currentD = new Date(date); if (currentD >= startD && currentD <= endD) { data[date].forEach((entry, idx) => { totalAmount += entry.amount; const div = document.createElement("div"); div.className = "entry-item"; div.innerHTML = <strong>${date}</strong> - ${entry.description}: PHP ${entry.amount.toFixed(2)} <button onclick="editEntry('${date}', ${idx})">✏️ Edit</button> <button onclick="confirmDelete('${date}', ${idx})">🗑️ Delete</button>; trackDataDiv.appendChild(div); }); } }
+function deleteTrack(index) {
+  trackData.splice(index, 1);
+  localStorage.setItem("trackData", JSON.stringify(trackData));
+  filterData();
+}
 
-if (totalAmount > 0) { totalDisplay.innerHTML = 🔢 <strong>Total for selected dates:</strong> PHP ${totalAmount.toFixed(2)}; } else { totalDisplay.innerHTML = "No data found in selected range."; } });
+function editTrack(index) {
+  const newDate = prompt("Edit Date (YYYY-MM-DD):", trackData[index].date);
+  const newDesc = prompt("Edit Description:", trackData[index].description);
+  const newAmt = prompt("Edit Amount:", trackData[index].amount);
 
-// ✅ Delete with Confirmation function confirmDelete(date, index) { if (confirm("Are you sure you want to delete this entry?")) { const data = JSON.parse(localStorage.getItem("moneyData") || "{}"); data[date].splice(index, 1); if (data[date].length === 0) delete data[date]; localStorage.setItem("moneyData", JSON.stringify(data)); filterBtn.click(); // refresh filtered view } }
+  if (newDate && newDesc && !isNaN(parseFloat(newAmt))) {
+    trackData[index].date = newDate;
+    trackData[index].description = newDesc;
+    trackData[index].amount = parseFloat(newAmt);
+    localStorage.setItem("trackData", JSON.stringify(trackData));
+    filterData();
+  } else {
+    alert("Invalid input. Edit cancelled.");
+  }
+}
 
-// ✅ Edit Entry function editEntry(date, index) { const data = JSON.parse(localStorage.getItem("moneyData") || "{}"); const entry = data[date][index];
-
-const newDesc = prompt("Edit description:", entry.description); if (newDesc === null) return; const newAmount = prompt("Edit amount:", entry.amount); if (newAmount === null || isNaN(parseFloat(newAmount))) return;
-
-data[date][index] = { description: newDesc, amount: parseFloat(newAmount) }; localStorage.setItem("moneyData", JSON.stringify(data)); filterBtn.click(); }
-
-// ✅ Optional: auto load recent dates // filterBtn.click();
-
+// Load all data on page load (optional)
+// renderTable(trackData);
