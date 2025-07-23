@@ -1,130 +1,40 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const dateInput = document.getElementById("date");
-  const expenseForm = document.getElementById("expense-form");
-  const expenseFields = document.getElementById("expense-fields");
-  const addMoreBtn = document.getElementById("add-more");
-  const totalDisplay = document.getElementById("total");
-  const trackList = document.getElementById("track-list");
-  const startDateInput = document.getElementById("startDate");
-  const endDateInput = document.getElementById("endDate");
-  const filterBtn = document.getElementById("filterBtn");
+// ✅ script.js — Updated with full filtering, edit/delete with confirmation, and total computation
 
-  function calculateTotal() {
-    const amounts = expenseFields.querySelectorAll(".amount");
-    let total = 0;
-    amounts.forEach(input => {
-      total += parseFloat(input.value) || 0;
-    });
-    totalDisplay.textContent = total.toFixed(2);
-  }
+// Get elements const trackForm = document.getElementById("trackForm"); const saveBtn = document.getElementById("saveBtn"); const trackDataDiv = document.getElementById("trackData"); const startDate = document.getElementById("startDate"); const endDate = document.getElementById("endDate"); const filterBtn = document.getElementById("filterBtn"); const totalDisplay = document.getElementById("totalDisplay");
 
-  expenseFields.addEventListener("input", calculateTotal);
+// ✅ Save Data saveBtn.addEventListener("click", function (e) { e.preventDefault();
 
-  addMoreBtn.addEventListener("click", () => {
-    const row = document.createElement("div");
-    row.className = "expense-row";
-    row.innerHTML = `
-      <input type="text" class="description" placeholder="Description" required />
-      <input type="number" class="amount" placeholder="Amount" required />
-    `;
-    expenseFields.appendChild(row);
-  });
+const date = document.getElementById("date").value; const description = document.getElementById("description").value; const amount = parseFloat(document.getElementById("amount").value);
 
-  expenseForm.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const selectedDate = dateInput.value;
-    if (!selectedDate) return alert("Please select a date first.");
+if (!date || !description || isNaN(amount)) { alert("Please fill in all fields correctly."); return; }
 
-    const descriptions = document.querySelectorAll(".description");
-    const amounts = document.querySelectorAll(".amount");
+const data = JSON.parse(localStorage.getItem("moneyData") || "{}");
 
-    const entries = [];
-    descriptions.forEach((desc, i) => {
-      const description = desc.value.trim();
-      const amount = parseFloat(amounts[i].value);
-      if (description && !isNaN(amount)) {
-        entries.push({ description, amount });
-      }
-    });
+if (!data[date]) { data[date] = []; }
 
-    if (entries.length === 0) return alert("Please enter at least one valid expense.");
+data[date].push({ description, amount });
 
-    const saved = JSON.parse(localStorage.getItem("expenses") || "{}");
-    saved[selectedDate] = saved[selectedDate] || [];
-    saved[selectedDate].push(...entries);
-    localStorage.setItem("expenses", JSON.stringify(saved));
+localStorage.setItem("moneyData", JSON.stringify(data)); alert("Saved successfully!"); trackForm.reset(); });
 
-    expenseFields.innerHTML = `
-      <div class="expense-row">
-        <input type="text" class="description" placeholder="Description" required />
-        <input type="number" class="amount" placeholder="Amount" required />
-      </div>
-    `;
-    totalDisplay.textContent = "0.00";
-    alert("Saved successfully!");
-  });
+// ✅ Filter and Display Data filterBtn.addEventListener("click", function () { const start = startDate.value; const end = endDate.value; if (!start || !end) { alert("Please select both start and end dates."); return; }
 
-  filterBtn.addEventListener("click", () => {
-    const start = startDateInput.value;
-    const end = endDateInput.value;
-    if (!start || !end) return alert("Please select both start and end dates.");
+const data = JSON.parse(localStorage.getItem("moneyData") || "{}"); const displayItems = []; let totalAmount = 0;
 
-    const saved = JSON.parse(localStorage.getItem("expenses") || "{}");
-    const filtered = Object.entries(saved).filter(([date]) => {
-      return date >= start && date <= end;
-    });
+const startD = new Date(start); const endD = new Date(end);
 
-    trackList.innerHTML = "";
-    if (filtered.length === 0) {
-      trackList.innerHTML = "<p>No data found for selected range.</p>";
-      return;
-    }
+trackDataDiv.innerHTML = "";
 
-    filtered.forEach(([date, entries]) => {
-      const dateBox = document.createElement("div");
-      dateBox.className = "date-box";
-      dateBox.innerHTML = `<h3>${date}</h3>`;
-      entries.forEach((entry, idx) => {
-        const entryDiv = document.createElement("div");
-        entryDiv.className = "entry-row";
-        entryDiv.innerHTML = `
-          <span>${entry.description} - PHP ${entry.amount.toFixed(2)}</span>
-          <button class="edit" data-date="${date}" data-idx="${idx}">✏️ Edit</button>
-          <button class="delete" data-date="${date}" data-idx="${idx}">🗑️ Delete</button>
-        `;
-        dateBox.appendChild(entryDiv);
-      });
-      trackList.appendChild(dateBox);
-    });
-  });
+for (const date in data) { const currentD = new Date(date); if (currentD >= startD && currentD <= endD) { data[date].forEach((entry, idx) => { totalAmount += entry.amount; const div = document.createElement("div"); div.className = "entry-item"; div.innerHTML = <strong>${date}</strong> - ${entry.description}: PHP ${entry.amount.toFixed(2)} <button onclick="editEntry('${date}', ${idx})">✏️ Edit</button> <button onclick="confirmDelete('${date}', ${idx})">🗑️ Delete</button>; trackDataDiv.appendChild(div); }); } }
 
-  trackList.addEventListener("click", (e) => {
-    const target = e.target;
-    if (target.classList.contains("delete")) {
-      const date = target.dataset.date;
-      const idx = parseInt(target.dataset.idx);
-      const saved = JSON.parse(localStorage.getItem("expenses") || "{}");
-      if (confirm("Are you sure you want to delete this entry?")) {
-        saved[date].splice(idx, 1);
-        if (saved[date].length === 0) delete saved[date];
-        localStorage.setItem("expenses", JSON.stringify(saved));
-        filterBtn.click();
-      }
-    }
+if (totalAmount > 0) { totalDisplay.innerHTML = 🔢 <strong>Total for selected dates:</strong> PHP ${totalAmount.toFixed(2)}; } else { totalDisplay.innerHTML = "No data found in selected range."; } });
 
-    if (target.classList.contains("edit")) {
-      const date = target.dataset.date;
-      const idx = parseInt(target.dataset.idx);
-      const saved = JSON.parse(localStorage.getItem("expenses") || "{}");
-      const entry = saved[date][idx];
+// ✅ Delete with Confirmation function confirmDelete(date, index) { if (confirm("Are you sure you want to delete this entry?")) { const data = JSON.parse(localStorage.getItem("moneyData") || "{}"); data[date].splice(index, 1); if (data[date].length === 0) delete data[date]; localStorage.setItem("moneyData", JSON.stringify(data)); filterBtn.click(); // refresh filtered view } }
 
-      const newDesc = prompt("Edit description:", entry.description);
-      const newAmount = prompt("Edit amount:", entry.amount);
-      if (newDesc !== null && newAmount !== null && !isNaN(parseFloat(newAmount))) {
-        saved[date][idx] = { description: newDesc.trim(), amount: parseFloat(newAmount) };
-        localStorage.setItem("expenses", JSON.stringify(saved));
-        filterBtn.click();
-      }
-    }
-  });
-});
+// ✅ Edit Entry function editEntry(date, index) { const data = JSON.parse(localStorage.getItem("moneyData") || "{}"); const entry = data[date][index];
+
+const newDesc = prompt("Edit description:", entry.description); if (newDesc === null) return; const newAmount = prompt("Edit amount:", entry.amount); if (newAmount === null || isNaN(parseFloat(newAmount))) return;
+
+data[date][index] = { description: newDesc, amount: parseFloat(newAmount) }; localStorage.setItem("moneyData", JSON.stringify(data)); filterBtn.click(); }
+
+// ✅ Optional: auto load recent dates // filterBtn.click();
+
